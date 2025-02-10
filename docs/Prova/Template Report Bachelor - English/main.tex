@@ -1,0 +1,178 @@
+
+%%%%%%%%%%%% -------- DOCUMENT BEGINNING ---------%%%%%%%%%%%%%%%%%%
+\documentclass[10pt]{report}
+\input{packages}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%-------- MARGINS BEGINNING  ---------%%%%%%%%%%%%%%%%%%%
+
+
+
+\setpapersize{A4}
+\setmargins{2.2cm}          % LEFT MARGIN
+{0cm}                       % UPPER MARGIN
+{16.5cm}                    % WIDTH OF THE TEXT
+{24.57cm}                   % HEIGHT OF THE TEXT
+{55pt}                      % HEIGHT OF THE HEADERS
+{1.25cm}                    % Space between the text and the headers
+{1pt}                       % Height of the foot of the page
+{0.5cm}                     % Space between the text and the foot of the                                page
+
+
+  
+                        
+%%%%%%%%%%%%% -------- MARGINS ENDING ---------%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%% -------- DOCUMENT CONFIGURATION---------%%%%%%%%%%%%%%%%%%
+
+%Line spacing
+
+\spacing{1.5}
+
+%Tables configuration
+
+\captionsetup[table]{skip=10pt}
+
+\setlength{\tabcolsep}{20pt}
+\renewcommand{\arraystretch}{1.5}
+
+%Headers
+
+\pagestyle{fancy}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \rhead{{Title of the thesis}}
+  \lhead{\includegraphics[width=5.5cm]{Figures/logo_eseiaat.png} }
+   \cfoot{\thepage}
+   }
+  
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%-------- BEGINNING OF THE COVER ---------%%%%%%%%%%%
+
+\begin{document}
+
+
+
+\newgeometry{left=5cm,bottom=0.1cm,textwidth=19cm}
+
+\pagestyle{empty}
+
+\begin{figure}[h]
+\includegraphics[width=6cm]{{Figures/logo_eseiaat.png}}
+\end{figure}
+
+\begin{wrapfigure}{r}{0.25\textwidth} 
+    \centering
+    \includegraphics[angle=90, width=0.08\textwidth]{Figures/bachelorfinalthesis.JPG}
+\end{wrapfigure}
+
+\phantom{abs}
+
+\vspace{1.5cm}
+
+\textbf{\scalebox{2.5}{\textcolor{RoyalBlue}{Bachelor thesis title}}}   %MODIFY
+
+\vspace{2cm}
+
+\textbf{\scalebox{1.5}{{Document:}}}
+
+\vspace{0.5 cm}
+\scalebox{1.5}{\textcolor{RoyalBlue}{Report}}
+
+                                                    
+
+\vspace{2cm}
+
+\textbf{\scalebox{1.5}{{Author:}}}
+
+\vspace{0.5 cm}
+\scalebox{1.5}{{\textcolor{RoyalBlue}{XXXXX}}}                      %MODIFY
+
+
+\vspace{2cm}
+
+\textbf{\scalebox{1.5}{{Director/Co-director:}}}
+
+\vspace{0.5 cm}
+\scalebox{1.5}{{\textcolor{RoyalBlue}{XXXXX}}}                      %MODIFY
+
+
+\vspace{2cm}
+
+\textbf{\scalebox{1.5}{{Degree:}}}
+
+\vspace{0.5 cm}
+\scalebox{1.5}{{\textcolor{RoyalBlue}{Bachelor in XXXXX}}}          %MODIFY           
+
+\vspace{2cm}
+
+\textbf{\scalebox{1.5}{{Examination session:}}}
+
+\vspace{0.5 cm}
+
+\scalebox{1.5}{{\textcolor{RoyalBlue}{Autum/Spring/Extension year.}}}     
+%MODIFY
+
+\restoregeometry
+
+%%%%%%%%%%%%-------- ENDING OF THE COVER ---------%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% EMPTY PAGE
+
+\newpage
+\thispagestyle{empty}
+\phantom{abc}
+\newpage
+
+\pagestyle{fancy}
+\pagenumbering{Roman}
+
+% Abstract
+
+\input{Files/Abstract}
+\pagebreak
+
+% TABLE OF CONTENTS
+
+\tableofcontents
+\listoffigures
+\listoftables
+\input{Files/Abbreviations}
+
+
+\newpage
+
+
+%Sections
+\pagenumbering{arabic}
+
+
+\input{Files/Introduction}
+\newpage
+\input{Files/State_of_the_art}
+\newpage
+\input{Files/Methodology}
+\newpage
+\input{Files/Alternative_solution}
+\newpage
+\input{Files/Discussion_solution}
+\newpage
+\input{Files/Budget}
+\newpage
+\input{Files/Analysis_environmental}
+\newpage
+\input{Files/Conclusions}
+
+%Bibliography
+
+\newpage
+
+\printbibliography
+
+
+\end{document}
