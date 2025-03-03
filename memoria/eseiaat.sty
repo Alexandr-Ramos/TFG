@@ -43,6 +43,27 @@
 %% FI MARGES
 
 
+%
+\makeatletter
+\newcommand*\mysize{%
+	\@setfontsize\mysize{10.0}{13.0}%
+}
+\makeatother
+\usepackage[cachedir=tmp/mint]{minted}
+\setminted{ autogobble          = true,
+	breaksymbolright    = \tiny\ensuremath{\mathbf\cdots},
+	breaksymbolright    = \tiny ···,
+	breaklines          = true,
+	frame               = lines,
+	labelposition       = topline,
+	rulecolor           = Sepia,
+	bgcolor             = Orange!4,
+	framesep            = 2mm,
+	fontsize            = \mysize,
+	numbers             = left,
+	python3             = true
+}
+
 
 %INTERLINEAT
 \spacing{1.5}
@@ -72,3 +93,6 @@
 \renewcommand{\tablename}{Taula}
 \renewcommand{\chaptername}{Capítol}
 \renewcommand{\bibname}{Referències}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}

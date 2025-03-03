@@ -1,0 +1,45 @@
+// dot -T pdf dependencias.dot -o dependencias.pdf;
+
+strict digraph dependencias {
+        graph [ bgcolor=gray95, fontname=Courier, fontcolor=blue, fontsize=14 ];
+        node [ fontname=Courier, fontcolor=blue, fontsize=14 ];
+        edge [ fontname=Courier, fontcolor=red, fontsize=14 ];
+
+        compileP1       [label="compilar", shape=box];
+        compilePav      [label="compilar", shape=box];
+        compileFic      [label="compilar", shape=box];
+
+        enlazar [label="enlazar", shape=box];
+
+        p1_c    [label="p1.c"];
+        pav_analysis_c  [label="pav_analysis.c"];
+        fic_wave_c      [label="fic_wave.c"];
+
+        pav_analysis_h  [label="pav_analysis.h"];
+        fic_wave_h      [label="fic_wave.h"];
+
+        p1_o    [label="p1.o"];
+        pav_analysis_o  [label="pav_analysis.o"];
+        fic_wave_o      [label="fic_wave.o"];
+
+        p1_c -> compileP1;
+        pav_analysis_h -> p1_c
+        fic_wave_h -> p1_c
+
+        pav_analysis_c -> compilePav
+        pav_analysis_h -> pav_analysis_c
+
+        fic_wave_c -> compileFic
+        fic_wave_h -> fic_wave_c
+
+        compileP1 -> p1_o;
+        compilePav -> pav_analysis_o
+        compileFic -> fic_wave_o
+
+        p1_o -> enlazar
+        pav_analysis_o -> enlazar
+        fic_wave_o -> enlazar
+
+        enlazar -> p1
+}
+
