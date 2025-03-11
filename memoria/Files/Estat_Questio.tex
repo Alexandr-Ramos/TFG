@@ -1,3 +1,33 @@
 \chapter{Background and/or status of the matter}
 
 Si s’escau. Situació actual sobre el tema que es pretén estudiar. En aquest apartat, s’hi poden incloure tants subapartats com sigui necessari.
+
+\begin{center}
+\vspace{-2mm}
+\tikzsetnextfilename{vad_fsa_basico}
+\begin{tikzpicture}[node distance=30mm,on grid,auto, scale=1, bend angle=45]
+	% \draw[help lines] (0,0) grid (3,2);
+	every node/.style={font=\small};
+	
+	\node (q_init) {start};
+	\node (null_init) [right=of q_init] {};
+	\node[state, minimum size=15mm] (q_sil) [above right=of null_init] {silence};
+	\node[state, minimum size=15mm] (q_voice) [below right=of null_init] {voice};
+	\node (null_final) [above right=of q_voice] {};
+	\node (q_final) [right=of null_final] {end};
+	
+	
+	\draw[blue, dotted, very thick, ->] (q_init) edge node {} (q_sil);
+	\draw[blue, dotted, very thick, ->] (q_init) edge node {} (q_voice);
+	\draw[blue, dotted, very thick, ->] (q_sil) edge node {} (q_final);
+	\draw[blue, dotted, very thick, ->] (q_voice) edge node {} (q_final);
+	
+	\path[->,every node/.style={font=\footnotesize}]
+	(q_sil) edge [bend left, thick] node {$C_{S,V}$} (q_voice)
+	edge [loop above, thick] node {$C_{S}$} ()
+	(q_voice) edge [bend left, thick] node  {$C_{V,S}$} (q_sil)
+	edge [loop above, thick] node {$C_{V}$} ()
+	;
+\end{tikzpicture}
+\vspace{-2mm}
+\end{center}

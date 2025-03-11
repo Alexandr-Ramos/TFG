@@ -30,6 +30,13 @@
 \DeclareFieldFormat{url}{URL\addcolon\space\url{#1}}
 \usepackage{hyphenat}
 
+\usepackage{tikz}
+\usetikzlibrary{positioning, graphs, fit}
+\usetikzlibrary{arrows,automata}
+\usetikzlibrary{shapes,calc,shadows,external}
+
+\tikzexternalize[prefix=tmp/tikz/]
+
 
 \setpapersize{A4}
 \setmargins{2.2cm}          % marge esquerre
@@ -96,3 +103,6 @@
 
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
+
+
+

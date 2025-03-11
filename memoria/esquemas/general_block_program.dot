@@ -39,7 +39,7 @@ digraph G {
     }
 
     // Connexió des de "DSP" a "system"
-    system [label="system", shape=plaintext];
+    system [label="SYSTEM"];
     dsp -> system [label="out_to_sys"];
 
     // Connexió des de "system" a "analysis"
