@@ -3,7 +3,10 @@ from tkinter import ttk
 import sounddevice as sd
 import config  # Import shared config variables
 
-def open_settings(root, selection_label):
+# Settings Window
+def open_settings(root, selection_label):  # Accept arguments
+    global ext_in_dev, ext_in_ch  
+
     settings_window = tk.Toplevel(root)
     settings_window.title("Settings")
     settings_window.geometry("400x250")
@@ -65,7 +68,7 @@ def open_settings(root, selection_label):
         config.ext_in_dev = int(selected_device.get().split(":")[0])  # Store device ID as integer
         config.ext_in_ch = int(selected_channel_var.get())  # Store channel as integer
         device_name = sd.query_devices(config.ext_in_dev)['name']  # Get device name from ID
-        selection_label.config(text=f"Selected external input device: {device_name}, channel: {config.ext_in_ch}")
+        selection_label.config(text=f"External input: Device: {device_name}, Channel: {config.ext_in_ch}")
         print(f"Selected External Input Device: {device_name}, Channel: {config.ext_in_ch}")  # Debugging output
         settings_window.destroy()
 
