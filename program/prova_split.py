@@ -14,14 +14,50 @@ root = tk.Tk()
 root.title("RTA+C by ARS")
 root.geometry("800x600")
 
+# Objects tkinter
+tk.IntVar(master=root, value=0)
+tk.StringVar(master=root, value="default")
+ext_in_dev = tk.IntVar(value=-1)
+ext_in_ch = tk.IntVar(value=-1)
+out_to_sys_dev = tk.IntVar(value=-1)
+out_to_sys_ch = tk.IntVar(value=-1)
+in_from_sys_dev = tk.IntVar(value=-1)
+in_from_sys_ch = tk.IntVar(value=-1)
+
 # Create menu bar with settings button.
 menubar = tk.Menu(root)
+
 # Create selected info
-selection_label = tk.Label(root, text="Selected external input device: None, channel: None")
-selection_label.pack(pady=5)
+lbl_ext_in = tk.Label(root, text="Selected external input device: None, channel: None")
+lbl_ext_in.pack(pady=5)
+
+lbl_out_to_sys = tk.Label(root, text="Selected output to system device: None, channel: None")
+lbl_out_to_sys.pack(pady=5)
+
+lbl_in_from_sys = tk.Label(root, text="Selected input from system device: None, channel: None")
+lbl_in_from_sys.pack(pady=5)
 
 #Window structure
-menubar.add_command(label="Settings", command=lambda: open_settings(root, selection_label))
+menubar.add_command(label="Settings", command=lambda: open_settings(root,
+    lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
+    ext_in_dev, ext_in_ch, out_to_sys_dev, out_to_sys_ch, in_from_sys_dev, in_from_sys_ch))
 root.config(menu=menubar)
+
+# Container for analysis and correction buttons
+main_button_frame = tk.Frame(root)
+main_button_frame.pack(pady=20)
+
+# Big Analysis button
+analysis_button = tk.Button(main_button_frame, text="Analysis", font=("Arial", 16), width=15, height=4)
+analysis_button.grid(row=0, column=0, padx=10)
+
+# # Placeholder (for future content in between)
+# middle_placeholder = tk.Label(main_button_frame, text="", width=10)
+# middle_placeholder.grid(row=0, column=1)
+
+# Big Correction button
+correction_button = tk.Button(main_button_frame, text="Correction (DSP)", font=("Arial", 16), width=15, height=4)
+correction_button.grid(row=0, column=2, padx=10)
+
 
 root.mainloop()

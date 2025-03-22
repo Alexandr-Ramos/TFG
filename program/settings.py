@@ -4,29 +4,53 @@ import sounddevice as sd
 import config  # Import shared config variables
 
 # Settings Window
-def open_settings(root, selection_label):  # Accept arguments
-    global ext_in_dev, ext_in_ch  
+def open_settings(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
+        ext_in_dev, ext_in_ch, out_to_sys_dev, out_to_sys_ch, in_from_sys_dev, in_from_sys_ch
+        ):  # Accept arguments 
 
     settings_window = tk.Toplevel(root)
     settings_window.title("Settings")
-    settings_window.geometry("400x250")
+    settings_window.geometry("600x400")
+
+   # Create container frames
+    sidebar = tk.Frame(settings_window, width=150, bg="#ddd")
+    content = tk.Frame(settings_window, bg="white")
+
+    sidebar.pack(side="left", fill="y")
+    content.pack(side="right", expand=True, fill="both")
+
+    # Dictionary to hold pages
+    pages = {}
+
+    def show_page(page_name):
+        for name, frame in pages.items():
+            frame.pack_forget()
+        pages[page_name].pack(fill="both", expand=True)
+
+    # ---------- PAGE 1: Device ----------
+
+    device_page = tk.Frame(content, bg="white")
+    pages["Device"] = device_page
+
+    label_device = tk.Label(device_page, text="Device Settings", font=("Arial", 14))
+    label_device.pack(pady=10)
 
     # Label for the device selection
-    label_device = tk.Label(settings_window, text="External audio source:")
+    label_device = tk.Label(device_page, text="External audio source:")
     label_device.pack(pady=5)
 
-    # Get available input devices
+    # Get available input devices (store index instead of name)
     devices = sd.query_devices()
     input_devices = {i: d for i, d in enumerate(devices) if d['max_input_channels'] > 0}
 
     # Extract list of names for UI, but store the ID internally
     device_names = [f"{i}: {d['name']}" for i, d in input_devices.items()]
-    
+
     # Variable to store selected device index
     selected_device = tk.StringVar()
 
     # Dropdown menu for device selection
-    device_dropdown = ttk.Combobox(settings_window, textvariable=selected_device, values=device_names, state="readonly")
+    device_dropdown = ttk.Combobox(device_page, textvariable=selected_device, values=device_names, state="readonly")
     device_dropdown.pack(pady=5)
 
     # Select first device by default if available
@@ -37,7 +61,7 @@ def open_settings(root, selection_label):  # Accept arguments
         first_device = None
 
     # Label for channel selection
-    label_channel = tk.Label(settings_window, text="Select channel:")
+    label_channel = tk.Label(device_page, text="Select channel:")
     label_channel.pack(pady=5)
 
     # Variable to store selected channel
@@ -53,7 +77,7 @@ def open_settings(root, selection_label):  # Accept arguments
             channel_dropdown.current(0)  # Default to first channel
 
     # Dropdown menu for channel selection
-    channel_dropdown = ttk.Combobox(settings_window, textvariable=selected_channel_var, state="readonly")
+    channel_dropdown = ttk.Combobox(device_page, textvariable=selected_channel_var, state="readonly")
     channel_dropdown.pack(pady=5)
 
     # Link device selection change to update_channels function
@@ -65,13 +89,38 @@ def open_settings(root, selection_label):  # Accept arguments
 
     # Function to confirm selection
     def confirm_selection():
-        config.ext_in_dev = int(selected_device.get().split(":")[0])  # Store device ID as integer
-        config.ext_in_ch = int(selected_channel_var.get())  # Store channel as integer
-        device_name = sd.query_devices(config.ext_in_dev)['name']  # Get device name from ID
-        selection_label.config(text=f"External input: Device: {device_name}, Channel: {config.ext_in_ch}")
-        print(f"Selected External Input Device: {device_name}, Channel: {config.ext_in_ch}")  # Debugging output
-        settings_window.destroy()
+        ext_in_dev.set(int(selected_device.get().split(":")[0]))  # Store device ID as integer
+        ext_in_ch.set(int(selected_channel_var.get()))  # Store channel as integer
+        device_name = sd.query_devices(ext_in_dev.get())['name']  # Get device name from ID
+        lbl_ext_in.config(text=f"External input: Device: {device_name}, Channel: {ext_in_ch.get()}")
+        print(f"Selected External Input Device: {device_name}, Channel: {ext_in_ch.get()}")  # Debugging output
+        status_label.config(text="Devices selection updated.")
+        settings_window.after(5000, lambda: status_label.config(text=""))
 
     # Confirm button
-    confirm_button = tk.Button(settings_window, text="Confirm", command=confirm_selection)
+    confirm_button = tk.Button(device_page, text="Confirm", command=confirm_selection)
     confirm_button.pack(pady=10)
+
+    # Status message label (initially empty)
+    status_label = tk.Label(device_page, text="", fg="green", bg=device_page["bg"])
+    status_label.pack(pady=5)
+
+    # ---------- PAGE 2: Display ----------
+    audio_page = tk.Frame(content, bg="white")
+    pages["Audio"] = audio_page
+
+    label_display = tk.Label(audio_page, text="Audio Settings", font=("Arial", 14))
+    label_display.pack(pady=10)
+
+    # ---------- Sidebar Buttons ----------
+    buttons = [
+        ("Device", lambda: show_page("Device")),
+        ("Audio", lambda: show_page("Audio")),
+    ]
+
+    for text, cmd in buttons:
+        btn = tk.Button(sidebar, text=text, command=cmd, anchor="w", padx=10)
+        btn.pack(fill="x", pady=2)
+
+    # Show first page by default
+    show_page("Device")
