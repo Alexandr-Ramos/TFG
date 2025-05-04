@@ -8,6 +8,8 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+from config import buffer_data, buffer_lock
+
 block_size_ms = 100  # 100 ms
 
 
@@ -27,22 +29,22 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
     global stream_stop
     stream_stop = False
 
-    # Define a stop stream with some debugging
-    def stop_current_stream():
-        global audio_stream, stream_stop
+    # # Define a stop stream with some debugging
+    # def stop_current_stream():
+    #     global audio_stream, stream_stop
     
-        try:
-            if audio_stream:
-                stream_stop = True
-                time.sleep(0.5)
-                audio_stream.stop()
-                audio_stream.close()
-                audio_stream = None
-                time.sleep(0.5)
-                stream_stop = False
-                print("[INFO] Stream stopped successfully")
-        except Exception as e:
-            print(f"[WARN] Could not stop stream: {e}")
+    #     try:
+    #         if audio_stream:
+    #             stream_stop = True
+    #             time.sleep(0.5)
+    #             audio_stream.stop()
+    #             audio_stream.close()
+    #             audio_stream = None
+    #             time.sleep(0.5)
+    #             stream_stop = False
+    #             print("[INFO] Stream stopped successfully")
+    #     except Exception as e:
+    #         print(f"[WARN] Could not stop stream: {e}")
 
   
     analysis_window = tk.Toplevel(root)
@@ -51,7 +53,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
     # Stop stream when close window
     def on_closing():
-        stop_current_stream()
+        # stop_current_stream()
         analysis_window.destroy()
 
     analysis_window.protocol("WM_DELETE_WINDOW", on_closing)
@@ -72,7 +74,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
         try:
             # Stop any existing stream
-            stop_current_stream() 
+            # stop_current_stream() 
 
             # Destroy and unload current pages
             for name, frame in pages.items():
@@ -110,13 +112,9 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             label_ft = tk.Label(ft_page, text="FT", font=("Arial", 14))
             label_ft.pack(pady=10)
 
-            # Create frame for the spectrogram
-            spectrogram_frame = tk.Frame(ft_page)
-            spectrogram_frame.pack(pady=10, fill="both", expand=True)
-
             # Create canvas for the spectrogram plot
             fig, ax = plt.subplots(figsize=(5, 3))
-            canvas = FigureCanvasTkAgg(fig, master=spectrogram_frame)
+            canvas = FigureCanvasTkAgg(fig, master=ft_page)
             canvas.get_tk_widget().pack(fill="both", expand=True)
 
             # Initialize plot line
@@ -131,62 +129,41 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ax.grid(True, which='both', linestyle='--', linewidth=0.5)
 
             # Update spectrogram
-            def update_spectrogram(indata, frames, time, status):
-                # global stream_stop
-                if stream_stop:
+            def update_spectrogram():
+                from config import buffer_data, buffer_lock
+
+                if ext_in_ch.get() is None or ext_in_ch.get() < 1:
                     return
 
-                if ext_in_dev.get() is None or ext_in_ch.get() is None: ##############################3
-                    return  # Don't update if no device is selected
-                
-                if not canvas.get_tk_widget().winfo_exists():
-                    return  # If it isn't updatable, do not update.
+                with buffer_lock:
+                    if buffer_data is None:
+                        return
+                    indata = buffer_data.copy()
 
+                print(f"[DEBUG] indata shape: {indata.shape}") ######################## DEBUG
+                
                 # Select the correct channel (convert 1-based index to 0-based)
                 audio_data = indata[:, ext_in_ch.get() - 1]
 
                 # Apply window (Blackman)
                 window = np.blackman(len(audio_data))
-                window /= np.sum(window)
-                windowed = audio_data * window
+                audio_data *= window
 
-                # Zero-padding to N_FFT
-                # if len(windowed) < N_FFT:
-                #     padded = np.zeros(N_FFT)
-                #     padded[:len(windowed)] = windowed
-                # else:
-                #     padded = windowed[:N_FFT]
-
-                # FFT log
-                # windowed[:]=1
-                spectrum = np.abs(np.fft.rfft(windowed, n=N_FFT)) # recovering energy lost by zero-padding --> Not really
+                spectrum = np.abs(np.fft.rfft(audio_data, n=N_FFT)) # recovering energy lost by zero-padding --> Not really
                 spectrum = 20 * np.log10(spectrum + 1e-6)  # avoid log(0)
+                freqs = np.fft.rfftfreq(N_FFT, d=1/fs.get())
 
                 # Update the plot
-                line.set_ydata(spectrum)
-                canvas.get_tk_widget().after(0, canvas.draw)
+                line.set_data(freqs, spectrum)
+                canvas.draw()
+                
+                analysis_window.after(20, update_spectrogram)
 
-            # Start audio stream
-            def start_ft_stream():
-                global audio_stream
+            analysis_window.after(0, update_spectrogram)
 
-                try: # When opening second time, it go to error ###################################3
-                    audio_stream = sd.InputStream(
-                        device=ext_in_dev.get(),
-                        channels=ext_in_ch.get(),
-                        samplerate=fs.get(),
-                        blocksize=block_size_fft, #Data input for fft
-                        callback=update_spectrogram
-                    )
-                    audio_stream.start()
-
-                except Exception as e:
-                    print(f"[ERROR] Coud not open input stream (FT): {e}")
-
-            # Start Stream
-            analysis_window.after(0, start_ft_stream) #Start after GUI
 
     #### PAGE 2: 31 Bands ####
+    
     def load_31bands_page():
         if not loaded_pages.get("31 Bands"):
             loaded_pages["31 Bands"] = True 
@@ -241,16 +218,25 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 sos_filters.append(sos)
 
             # Callback to update bar graph
-            def update_rta_bars(indata, frames, time, status):
-                # global stream_stop
-                if stream_stop:
-                    return
+            def update_rta_bars():
+                global buffer_data, buffer_lock
 
-                if ext_in_dev.get() is None or ext_in_ch.get() is None:
-                    return
+                with buffer_lock:
+                    if buffer_data is None:
+                        return
+                    indata=buffer_data.copy()
+
+                print(f"[DEBUG] indata shape: {indata.shape}") ######################## DEBUG
                 
-                if not canvas_rta.get_tk_widget().winfo_exists():
-                    return  # If it isn't updatable, do not update.
+                # # global stream_stop
+                # if stream_stop:
+                #     return
+
+                # if ext_in_dev.get() is None or ext_in_ch.get() is None:
+                #     return
+                
+                # if not canvas_rta.get_tk_widget().winfo_exists():
+                #     return  # If it isn't updatable, do not update.
                 
                 audio_data = indata[:, ext_in_ch.get() - 1]
                 # window = np.blackman(len(audio_data)) ###############################
@@ -270,41 +256,52 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
                 canvas_rta.get_tk_widget().after(0, canvas_rta.draw)
 
-            # Start stream for 31-band RTA
-            def start_rta_stream():
-                global audio_stream
-                # stop_current_stream()
+            # # Start stream for 31-band RTA
+            # def start_rta_stream():
+            #     global audio_stream
+            #     # stop_current_stream()
 
-                # try:
-                #     if audio_stream:
-                #         audio_stream.stop()
-                #         audio_stream.close()
-                # except Exception:
-                #     pass
+            #     # try:
+            #     #     if audio_stream:
+            #     #         audio_stream.stop()
+            #     #         audio_stream.close()
+            #     # except Exception:
+            #     #     pass
 
-                # if ext_in_dev.get() <= 0:
-                #     return
+            #     # if ext_in_dev.get() <= 0:
+            #     #     return
                 
-                # audio_stream.stop()
-                # audio_stream.close()
-                #######################################################################33
-                try: # Heare is not the problem
+            #     # audio_stream.stop()
+            #     # audio_stream.close()
+            #     #######################################################################33
+            #     try: # Heare is not the problem
 
-                    audio_stream = sd.InputStream(
-                        device=ext_in_dev.get(),
-                        channels=ext_in_ch.get(),
-                        samplerate=fs.get(),
-                        blocksize=block_size_fft,
-                        callback=update_rta_bars
-                    )
-                    audio_stream.start()
+            #         audio_stream = sd.InputStream(
+            #             device=ext_in_dev.get(),
+            #             channels=ext_in_ch.get(),
+            #             samplerate=fs.get(),
+            #             blocksize=block_size_fft,
+            #             callback=update_rta_bars
+            #         )
+            #         audio_stream.start()
 
-                    print("[INFO] Stream started")
-                except Exception as e:
-                    print(f"[ERROR] Could not open input stream(RTA): {e}")
-                    audio_stream = None
+            #         print("[INFO] Stream started")
+            #     except Exception as e:
+            #         print(f"[ERROR] Could not open input stream(RTA): {e}")
+            #         audio_stream = None
 
-            analysis_window.after(0, start_rta_stream) #Start after GUI
+            # analysis_window.after(0, start_rta_stream) #Start after GUI
+
+            def periodic_update():
+                from config import update_enabled
+                if not update_enabled:
+                    return
+
+                update_rta_bars()
+                root.after(100, periodic_update)  # actualització cada 100 ms
+
+            analysis_window.after(0, periodic_update)
+
 
     #### PAGE 3: Delay ####
     def load_delay_page():
@@ -338,13 +335,22 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             # Buffer size for 500 ms
             buffer_size = int(fs.get() * 0.5)  # 500 ms
 
-            def update_delay(indata, frames, time, status):
-                # global stream_stop
-                if stream_stop:
-                    return
+            def update_delay():
+                global buffer_data, buffer_lock
 
-                if ext_in_dev.get() is None or ext_in_ch.get() is None or in_from_sys_dev.get() is None or in_from_sys_ch.get() is None:
-                    return
+                with buffer_lock:
+                    if buffer_data is None:
+                        return
+                    indata = buffer_data.copy()
+
+                print(f"[DEBUG] indata shape: {indata.shape}") ######################## DEBUG
+                
+                # # global stream_stop
+                # if stream_stop:
+                #     return
+
+                # if ext_in_dev.get() is None or ext_in_ch.get() is None or in_from_sys_dev.get() is None or in_from_sys_ch.get() is None:
+                #     return
 
                 sig1 = indata[:, ext_in_ch.get() - 1]
                 sig2 = indata[:, in_from_sys_ch.get() - 1]
@@ -380,24 +386,35 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 canvas_corr.get_tk_widget().after(0, canvas_corr.draw)
 
 
-            def start_delay_stream():
-                global audio_stream
+            # def start_delay_stream():
+            #     global audio_stream
 
-                try:
-                    audio_stream = sd.InputStream(
-                        device=ext_in_dev.get(),  # assuming same device for simplicity
-                        channels=max(ext_in_ch.get(), in_from_sys_ch.get()),
-                        samplerate=fs.get(),
-                        blocksize=buffer_size,
-                        callback=update_delay
-                    )
-                    audio_stream.start()
-                    print("[INFO] Delay stream started")
-                except Exception as e:
-                    print(f"[ERROR] Could not open delay input stream: {e}")
-                    audio_stream = None
+            #     try:
+            #         audio_stream = sd.InputStream(
+            #             device=ext_in_dev.get(),  # assuming same device for simplicity
+            #             channels=max(ext_in_ch.get(), in_from_sys_ch.get()),
+            #             samplerate=fs.get(),
+            #             blocksize=buffer_size,
+            #             callback=update_delay
+            #         )
+            #         audio_stream.start()
+            #         print("[INFO] Delay stream started")
+            #     except Exception as e:
+            #         print(f"[ERROR] Could not open delay input stream: {e}")
+            #         audio_stream = None
 
-            analysis_window.after(0, start_delay_stream)
+            # analysis_window.after(0, start_delay_stream)
+
+            def periodic_update():
+                from config import update_enabled
+                if not update_enabled:
+                    return
+
+                update_delay()
+                root.after(100, periodic_update)  # actualització cada 100 ms
+
+            analysis_window.after(0, periodic_update)
+
 
             # Button to pause/resume stream
             def toggle_stream():
