@@ -112,27 +112,45 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             label_ft = tk.Label(ft_page, text="FT", font=("Arial", 14))
             label_ft.pack(pady=10)
 
-            # Create canvas for the spectrogram plot
-            fig, ax = plt.subplots(figsize=(5, 3))
-            canvas = FigureCanvasTkAgg(fig, master=ft_page)
-            canvas.get_tk_widget().pack(fill="both", expand=True)
+            # Create canvas for the spectrogram plot --> Ext_In
+            fig_ext, ax_ext = plt.subplots(figsize=(5, 3))
+            canvas_ext = FigureCanvasTkAgg(fig_ext, master=ft_page)
+            canvas_ext.get_tk_widget().pack(fill="both", expand=True)
+
+            # Create canvas for the spectrogram plot --> In_from_Sys
+            fig_sys, ax_sys = plt.subplots(figsize=(5, 3))
+            canvas_sys = FigureCanvasTkAgg(fig_sys, master=ft_page)
+            canvas_sys.get_tk_widget().pack(fill="both", expand=True)
+
+            # Initialize plot line --> Ext_in
+            freqs = np.fft.rfftfreq(N_FFT, d=1/fs.get())
+            line_ext, = ax_ext.plot(freqs, np.zeros_like(freqs))
+            ax_ext.set_xlim(10, 40000)  # Limit to 20kHz
+            ax_ext.set_ylim(-80, 0)  # dB scale
+            ax_ext.set_xscale("log")
+            ax_ext.set_xlabel("Frequency (Hz)")
+            ax_ext.set_ylabel("Amplitude (dB)")
+            ax_ext.tick_params(axis='x', which='both', labelsize=8)
+            ax_ext.grid(True, which='both', linestyle='--', linewidth=0.5)
 
             # Initialize plot line
-            freqs = np.fft.rfftfreq(N_FFT, d=1/fs.get())
-            line, = ax.plot(freqs, np.zeros_like(freqs))
-            ax.set_xlim(10, 40000)  # Limit to 20kHz
-            ax.set_ylim(-80, 0)  # dB scale
-            ax.set_xscale("log")
-            ax.set_xlabel("Frequency (Hz)")
-            ax.set_ylabel("Amplitude (dB)")
-            ax.tick_params(axis='x', which='both', labelsize=8)
-            ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+            # freqs = np.fft.rfftfreq(N_FFT, d=1/fs.get()) # NOT NEEDED, it was defined earlier in Ext_in
+            line_sys, = ax_sys.plot(freqs, np.zeros_like(freqs))
+            ax_sys.set_xlim(10, 40000)  # Limit to 20kHz
+            ax_sys.set_ylim(-80, 0)  # dB scale
+            ax_sys.set_xscale("log")
+            ax_sys.set_xlabel("Frequency (Hz)")
+            ax_sys.set_ylabel("Amplitude (dB)")
+            ax_sys.tick_params(axis='x', which='both', labelsize=8)
+            ax_sys.grid(True, which='both', linestyle='--', linewidth=0.5)
 
             # Update spectrogram
             def update_spectrogram():
                 from config import buffer_data, buffer_lock
 
                 if ext_in_ch.get() is None or ext_in_ch.get() < 1:
+                    return
+                if in_from_sys_ch.get() is None or in_from_sys_ch.get() < 1:
                     return
 
                 with buffer_lock:
@@ -143,19 +161,28 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 print(f"[DEBUG] indata shape: {indata.shape}") ######################## DEBUG
                 
                 # Select the correct channel (convert 1-based index to 0-based)
-                audio_data = indata[:, ext_in_ch.get() - 1]
+                ext_data = indata[:, ext_in_ch.get() - 1]
+                sys_data = indata[:, in_from_sys_ch.get() - 1]
 
                 # Apply window (Blackman)
-                window = np.blackman(len(audio_data))
-                audio_data *= window
+                window = np.blackman(len(ext_data))
+                ext_data *= window
+                sys_data *= window             
 
-                spectrum = np.abs(np.fft.rfft(audio_data, n=N_FFT)) # recovering energy lost by zero-padding --> Not really
-                spectrum = 20 * np.log10(spectrum + 1e-6)  # avoid log(0)
-                freqs = np.fft.rfftfreq(N_FFT, d=1/fs.get())
+                # FFT
+                ext_spectrum = np.abs(np.fft.rfft(ext_data, n=N_FFT))
+                ext_spectrum = np.abs(ext_spectrum) / (np.sum(window)/2) # Normalize energy ###########################
+                ext_spectrum = 20 * np.log10(ext_spectrum + 1e-6)  # avoid log(0)
+                # freqs = np.fft.rfftfreq(N_FFT, d=1/fs.get()) #################### Ja ho tenia d'abans
+                sys_spectrum = np.abs(np.fft.rfft(sys_data, n=N_FFT))
+                sys_spectrum = np.abs(sys_spectrum) / (np.sum(window)/2) # Normalize energy ###########################
+                sys_spectrum = 20 * np.log10(sys_spectrum + 1e-6)  # avoid log(0)
 
                 # Update the plot
-                line.set_data(freqs, spectrum)
-                canvas.draw()
+                line_ext.set_data(freqs, ext_spectrum)
+                canvas_ext.draw()
+                line_sys.set_data(freqs, sys_spectrum)
+                canvas_sys.draw()
                 
                 analysis_window.after(20, update_spectrogram)
 
