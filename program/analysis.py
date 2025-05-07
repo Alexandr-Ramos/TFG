@@ -8,7 +8,9 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from config import buffer_data, buffer_lock
+# from config import buffer_data, buffer_lock, delay_buffer
+import config
+
 
 block_size_ms = 100  # 100 ms
 
@@ -17,43 +19,32 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
         ext_in_dev, ext_in_ch, out_to_sys_dev, out_to_sys_ch, in_from_sys_dev, in_from_sys_ch,
         fs, bit_depth, block_size): 
     
+    
+    
     # Calculate number of samples from milliseconds
     block_size_fft = int(fs.get() * block_size_ms / 1000)
 
     # Find next power of two for N_FFT
     N_FFT = 2**int(np.ceil(np.log2(block_size_fft)))
 
-    
+    # Define delay buffer
+    MAX_DELAY_SAMPLES = int(fs.get()*1) # 1 second size
+    if config.delay_buffer is None or config.delay_buffer.shape[0] != MAX_DELAY_SAMPLES:
+        config.delay_buffer = np.zeros((MAX_DELAY_SAMPLES,), dtype=np.float32) # Put zeros in the buffer
+    if config.delay_samples == None:
+        config.delay_samples = 0    # Initialize delay_samples
+
     global audio_stream
     audio_stream = None
     global stream_stop
     stream_stop = False
 
-    # # Define a stop stream with some debugging
-    # def stop_current_stream():
-    #     global audio_stream, stream_stop
-    
-    #     try:
-    #         if audio_stream:
-    #             stream_stop = True
-    #             time.sleep(0.5)
-    #             audio_stream.stop()
-    #             audio_stream.close()
-    #             audio_stream = None
-    #             time.sleep(0.5)
-    #             stream_stop = False
-    #             print("[INFO] Stream stopped successfully")
-    #     except Exception as e:
-    #         print(f"[WARN] Could not stop stream: {e}")
-
-  
     analysis_window = tk.Toplevel(root)
     analysis_window.title("Analysis")
     analysis_window.geometry("800x600")
 
     # Stop stream when close window
     def on_closing():
-        # stop_current_stream()
         analysis_window.destroy()
 
     analysis_window.protocol("WM_DELETE_WINDOW", on_closing)
@@ -73,9 +64,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
         global audio_stream
 
         try:
-            # Stop any existing stream
-            # stop_current_stream() 
-
+ 
             # Destroy and unload current pages
             for name, frame in pages.items():
                 frame.pack_forget()
@@ -112,6 +101,20 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             label_ft = tk.Label(ft_page, text="FT", font=("Arial", 14))
             label_ft.pack(pady=10)
 
+            #Buffer to make FT
+            long_buffer_sys = [] 
+            long_buffer_ext = []
+            def update_buffer(size: int, out_buffer: list, in_buffer: list, out_second: list, in_second: list) -> int:
+                out_buffer.extend(in_buffer)
+                out_second.extend(in_second)
+                if len(out_buffer) > size:
+                    # Erase first values
+                    out_buffer[:] = out_buffer[-size:]
+                if len(out_second) > size:
+                    out_second[:] = out_second[-size:]
+                return len(out_buffer)
+
+
             # Create canvas for the spectrogram plot --> Ext_In
             fig_ext, ax_ext = plt.subplots(figsize=(5, 3))
             canvas_ext = FigureCanvasTkAgg(fig_ext, master=ft_page)
@@ -129,24 +132,23 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ax_ext.set_ylim(-80, 0)  # dB scale
             ax_ext.set_xscale("log")
             ax_ext.set_xlabel("Frequency (Hz)")
-            ax_ext.set_ylabel("Amplitude (dB)")
+            ax_ext.set_ylabel("Amplitude (dB) EXT_IN")
             ax_ext.tick_params(axis='x', which='both', labelsize=8)
             ax_ext.grid(True, which='both', linestyle='--', linewidth=0.5)
 
             # Initialize plot line
-            # freqs = np.fft.rfftfreq(N_FFT, d=1/fs.get()) # NOT NEEDED, it was defined earlier in Ext_in
             line_sys, = ax_sys.plot(freqs, np.zeros_like(freqs))
             ax_sys.set_xlim(10, 40000)  # Limit to 20kHz
             ax_sys.set_ylim(-80, 0)  # dB scale
             ax_sys.set_xscale("log")
             ax_sys.set_xlabel("Frequency (Hz)")
-            ax_sys.set_ylabel("Amplitude (dB)")
+            ax_sys.set_ylabel("Amplitude (dB) IN_FROM_SYS")
             ax_sys.tick_params(axis='x', which='both', labelsize=8)
             ax_sys.grid(True, which='both', linestyle='--', linewidth=0.5)
 
             # Update spectrogram
             def update_spectrogram():
-                from config import buffer_data, buffer_lock
+                from config import buffer_data, buffer_lock, delay_buffer, delay_samples
 
                 if ext_in_ch.get() is None or ext_in_ch.get() < 1:
                     return
@@ -157,25 +159,62 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                     if buffer_data is None:
                         return
                     indata = buffer_data.copy()
-
-                print(f"[DEBUG] indata shape: {indata.shape}") ######################## DEBUG
                 
                 # Select the correct channel (convert 1-based index to 0-based)
                 ext_data = indata[:, ext_in_ch.get() - 1]
                 sys_data = indata[:, in_from_sys_ch.get() - 1]
+                
+                # Fill long buffer from short buffer
+                while update_buffer(N_FFT, long_buffer_sys, sys_data, long_buffer_ext, ext_data) < N_FFT:
+                    sys_data = indata[:, in_from_sys_ch.get() - 1]
+                    ext_data = indata[:, ext_in_ch.get() - 1]
+
+                sys_data=long_buffer_sys
+                ext_data=long_buffer_ext        
+    
+                # Shift delay_buffer and insert new ext_in samples
+                if config.delay_buffer is not None and config.delay_buffer.shape[0] >= len(ext_data):
+                    config.delay_buffer[:] = np.roll(config.delay_buffer, -len(ext_data))
+                    config.delay_buffer[-len(ext_data):] = ext_data
+
+                if delay_buffer is None or len(delay_buffer) < delay_samples + N_FFT:
+                    analysis_window.after(100, update_spectrogram)
+                    return  # not enought sampes to start
+                                
+                if config.delay_samples is None or config.delay_samples < 0:
+                    print("[ERROR] delay_samples is invalid")
+                    analysis_window.after(100, update_spectrogram)
+                    return
+
+                if len(config.delay_buffer) < config.delay_samples + N_FFT:
+                    print("[DEBUG] delay_buffer too short")
+                    analysis_window.after(100, update_spectrogram)
+                    return
+                
+                # Get delayed data
+                if config.delay_samples == 0:
+                    ext_data = config.delay_buffer[-N_FFT:]
+                else:
+                    ext_data = config.delay_buffer[-(config.delay_samples + N_FFT):-config.delay_samples]
+                                
+                if ext_data is None or len(ext_data) < N_FFT:
+                    analysis_window.after(100, update_spectrogram)
+                    print("[DEBUG] Delayed ext_data too short")
+                    return
 
                 # Apply window (Blackman)
-                window = np.blackman(len(ext_data))
-                ext_data *= window
-                sys_data *= window             
+                window_ext = np.blackman(len(ext_data))
+                ext_data *= window_ext
+                window_sys = np.blackman(len(sys_data))
+                sys_data *= window_sys       
 
                 # FFT
                 ext_spectrum = np.abs(np.fft.rfft(ext_data, n=N_FFT))
-                ext_spectrum = np.abs(ext_spectrum) / (np.sum(window)/2) # Normalize energy ###########################
+                ext_spectrum = np.abs(ext_spectrum) / (np.sum(window_ext)/2) # Normalize energy
                 ext_spectrum = 20 * np.log10(ext_spectrum + 1e-6)  # avoid log(0)
-                # freqs = np.fft.rfftfreq(N_FFT, d=1/fs.get()) #################### Ja ho tenia d'abans
+                
                 sys_spectrum = np.abs(np.fft.rfft(sys_data, n=N_FFT))
-                sys_spectrum = np.abs(sys_spectrum) / (np.sum(window)/2) # Normalize energy ###########################
+                sys_spectrum = np.abs(sys_spectrum) / (np.sum(window_sys)/2) # Normalize energy
                 sys_spectrum = 20 * np.log10(sys_spectrum + 1e-6)  # avoid log(0)
 
                 # Update the plot
