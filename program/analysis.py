@@ -114,7 +114,6 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                     out_second[:] = out_second[-size:]
                 return len(out_buffer)
 
-
             # Create canvas for the spectrogram plot --> Ext_In
             fig_ext, ax_ext = plt.subplots(figsize=(5, 3))
             canvas_ext = FigureCanvasTkAgg(fig_ext, master=ft_page)
@@ -124,6 +123,11 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             fig_sys, ax_sys = plt.subplots(figsize=(5, 3))
             canvas_sys = FigureCanvasTkAgg(fig_sys, master=ft_page)
             canvas_sys.get_tk_widget().pack(fill="both", expand=True)
+
+            # Create canvas for the spectrogram plot --> Diference = System Gain
+            fig_dif, ax_dif = plt.subplots(figsize=(5, 3))
+            canvas_dif = FigureCanvasTkAgg(fig_dif, master=ft_page)
+            canvas_dif.get_tk_widget().pack(fill="both", expand=True)
 
             # Initialize plot line --> Ext_in
             freqs = np.fft.rfftfreq(N_FFT, d=1/fs.get())
@@ -146,26 +150,45 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ax_sys.tick_params(axis='x', which='both', labelsize=8)
             ax_sys.grid(True, which='both', linestyle='--', linewidth=0.5)
 
+            # Initialize plot line --> Diference / Gain
+            line_dif, = ax_dif.plot(freqs, np.zeros_like(freqs))
+            ax_dif.set_xlim(10, 40000)  # Limit to 20kHz
+            ax_dif.set_ylim(-20, 20)  # dB scale
+            ax_dif.set_xscale("log")
+            ax_dif.set_xlabel("Frequency (Hz)")
+            ax_dif.set_ylabel("Amplitude (dB) System Gain")
+            ax_dif.tick_params(axis='x', which='both', labelsize=8)
+            ax_dif.grid(True, which='both', linestyle='--', linewidth=0.5)
+
             # Frame to hold the entry and the Apply button in one line
             avarage_frame = tk.Frame(ft_page, bg="white")
             avarage_frame.pack(pady=10)
 
             #Label
-            tk.Label(avarage_frame, text="Avarage:", bg="white").pack(side="left", padx=(0, 5))
+            tk.Label(avarage_frame, text="Time avarage:", bg="white").pack(side="left", padx=(0, 5))
 
             # Entry box for integer value
             avar_entry = tk.Entry(avarage_frame, width=10)
-            avar_entry.pack(side="left", padx=5)
+            avar_entry.pack(side="left", padx=10)
+
+            #Label
+            tk.Label(avarage_frame, text="Frequency avarage:", bg="white").pack(side="left", padx=(0, 5))
+
+            # Entry box for integer value
+            avar_freq_entry = tk.Entry(avarage_frame, width=10)
+            avar_freq_entry.pack(side="left", padx=10)
 
             # Apply button next to entry
-            global avarage
+            global avarage, freq_avarage
             avarage = 1
+            freq_avarage = 1
 
             def apply_value():
                 try:
-                    global avarage
+                    global avarage, freq_avarage
                     avarage = int(avar_entry.get())
-                    print(f"[INFO] Applied value: {avarage}")
+                    freq_avarage = int(avar_freq_entry.get())
+                    print(f"[INFO] Applied value: {avarage} and {freq_avarage}")
                     
                 except ValueError:
                     print("[WARN] Invalid integer input")
@@ -183,7 +206,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             def update_spectrogram():
                 from config import buffer_data, buffer_lock, delay_buffer, delay_samples
 
-                global avarage_ext_in, avarage_in_from_sys, avarage
+                global avarage_ext_in, avarage_in_from_sys, avarage, freq_avarage
 
                 if ext_in_ch.get() is None or ext_in_ch.get() < 1:
                     return
@@ -270,7 +293,19 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 ext_spectrum = np.mean(avarage_ext_in, axis=0)
                 sys_spectrum = np.mean(avarage_in_from_sys, axis=0)
 
-                if ext_spectrum.ndim != 1 or ext_spectrum.shape[0] != freqs.shape[0]: # Sometimes randomly happen. But with that, it works.
+                #Frequency avarage
+                if freq_avarage > 1:
+                    if freq_avarage % 2 == 1: # Have to be odd
+                        window = np.ones(freq_avarage) / freq_avarage
+                        ext_spectrum = np.convolve(ext_spectrum, window, mode='same')
+                        sys_spectrum = np.convolve(sys_spectrum, window, mode='same')
+                    else:
+                        freq_avarage = freq_avarage + 1 # Make it odd. 
+                        window = np.ones(freq_avarage) / freq_avarage
+                        ext_spectrum = np.convolve(ext_spectrum, window, mode='same')
+                        sys_spectrum = np.convolve(sys_spectrum, window, mode='same')
+
+                if ext_spectrum.ndim != 1 or ext_spectrum.shape[0] != freqs.shape[0]: # Sometimes randomly happen. But with this, it works.
                     print("[ERROR] Averaged spectrum shape mismatch:", ext_spectrum.shape)
                     analysis_window.after(100, update_spectrogram)
                     return
@@ -280,12 +315,17 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                     analysis_window.after(100, update_spectrogram)
                     return
 
+                #Calculations for difference
+                dif_spectrum = sys_spectrum - ext_spectrum
+                
                 # Update the plot
                 line_ext.set_data(freqs, ext_spectrum)
                 canvas_ext.draw()
                 line_sys.set_data(freqs, sys_spectrum)
                 canvas_sys.draw()
-                
+                line_dif.set_data(freqs, dif_spectrum)
+                canvas_dif.draw()
+
                 analysis_window.after(20, update_spectrogram)
 
             analysis_window.after(0, update_spectrogram)
