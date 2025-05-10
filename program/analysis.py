@@ -136,7 +136,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ax_ext.tick_params(axis='x', which='both', labelsize=8)
             ax_ext.grid(True, which='both', linestyle='--', linewidth=0.5)
 
-            # Initialize plot line
+            # Initialize plot line --> in_from_sys
             line_sys, = ax_sys.plot(freqs, np.zeros_like(freqs))
             ax_sys.set_xlim(10, 40000)  # Limit to 20kHz
             ax_sys.set_ylim(-80, 0)  # dB scale
@@ -146,9 +146,44 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ax_sys.tick_params(axis='x', which='both', labelsize=8)
             ax_sys.grid(True, which='both', linestyle='--', linewidth=0.5)
 
+            # Frame to hold the entry and the Apply button in one line
+            avarage_frame = tk.Frame(ft_page, bg="white")
+            avarage_frame.pack(pady=10)
+
+            #Label
+            tk.Label(avarage_frame, text="Avarage:", bg="white").pack(side="left", padx=(0, 5))
+
+            # Entry box for integer value
+            avar_entry = tk.Entry(avarage_frame, width=10)
+            avar_entry.pack(side="left", padx=5)
+
+            # Apply button next to entry
+            global avarage
+            avarage = 1
+
+            def apply_value():
+                try:
+                    global avarage
+                    avarage = int(avar_entry.get())
+                    print(f"[INFO] Applied value: {avarage}")
+                    
+                except ValueError:
+                    print("[WARN] Invalid integer input")
+
+            apply_button = tk.Button(avarage_frame, text="Apply", command=apply_value)
+            apply_button.pack(side="left", padx=5)
+
+            # Create objects to store FFT and calculate avarage
+            global avarage_ext_in, avarage_in_from_sys
+            avarage_ext_in = None
+            avarage_in_from_sys = None
+
+
             # Update spectrogram
             def update_spectrogram():
                 from config import buffer_data, buffer_lock, delay_buffer, delay_samples
+
+                global avarage_ext_in, avarage_in_from_sys, avarage
 
                 if ext_in_ch.get() is None or ext_in_ch.get() < 1:
                     return
@@ -212,10 +247,38 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 ext_spectrum = np.abs(np.fft.rfft(ext_data, n=N_FFT))
                 ext_spectrum = np.abs(ext_spectrum) / (np.sum(window_ext)/2) # Normalize energy
                 ext_spectrum = 20 * np.log10(ext_spectrum + 1e-6)  # avoid log(0)
-                
+                                
                 sys_spectrum = np.abs(np.fft.rfft(sys_data, n=N_FFT))
                 sys_spectrum = np.abs(sys_spectrum) / (np.sum(window_sys)/2) # Normalize energy
                 sys_spectrum = 20 * np.log10(sys_spectrum + 1e-6)  # avoid log(0)
+              
+                # Avarage
+                if avarage_ext_in is None:
+                    avarage_ext_in = ext_spectrum
+                else:
+                    avarage_ext_in = np.vstack([ext_spectrum, avarage_ext_in])
+                    while avarage < avarage_ext_in.shape[0]:
+                        avarage_ext_in = avarage_ext_in[:-1] # Delete last row
+
+                if avarage_in_from_sys is None:
+                    avarage_in_from_sys = sys_spectrum
+                else:
+                    avarage_in_from_sys = np.vstack([sys_spectrum, avarage_in_from_sys])
+                    while avarage < avarage_in_from_sys.shape[0]:
+                        avarage_in_from_sys = avarage_in_from_sys[:-1] # Delete last row
+
+                ext_spectrum = np.mean(avarage_ext_in, axis=0)
+                sys_spectrum = np.mean(avarage_in_from_sys, axis=0)
+
+                if ext_spectrum.ndim != 1 or ext_spectrum.shape[0] != freqs.shape[0]: # Sometimes randomly happen. But with that, it works.
+                    print("[ERROR] Averaged spectrum shape mismatch:", ext_spectrum.shape)
+                    analysis_window.after(100, update_spectrogram)
+                    return
+
+                if sys_spectrum.ndim != 1 or sys_spectrum.shape[0] != freqs.shape[0]:
+                    print("[ERROR] Averaged spectrum shape SYS mismatch:", sys_spectrum.shape)
+                    analysis_window.after(100, update_spectrogram)
+                    return
 
                 # Update the plot
                 line_ext.set_data(freqs, ext_spectrum)
