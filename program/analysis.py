@@ -63,15 +63,23 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
         try:
  
-            # Destroy and unload current pages
-            for name, frame in pages.items():
-                frame.pack_forget()
-                frame.after(10, frame.destroy)  # Destroy the frame's widgets
-            pages.clear()
-            loaded_pages.clear()
-            print("[INFO] Cleared previous pages")
+            # # Destroy and unload current pages
+            # for name, frame in pages.items():
+            #     frame.pack_forget()
+            #     frame.after(10, frame.destroy)  # Destroy the frame's widgets
+            # pages.clear()
+            # loaded_pages.clear()
+            # print("[INFO] Cleared previous pages")
 
-            time.sleep(0.1) #Time for ALSA to close previous stream
+            # time.sleep(0.1) #Time for ALSA to close previous stream
+
+            # Destroy any active page ####################################################################
+            for name in list(pages.keys()):
+                if name != page_name:
+                    pages[name].destroy()  # remove from memory
+                    del pages[name]
+                    del loaded_pages[name]
+            print("[INFO] Deleted previous pages")
 
             # Load and show new page
             if page_name == "FT":
@@ -319,7 +327,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
                 #Calculations for difference
                 dif_spectrum = sys_spectrum - ext_spectrum
-                
+               
                 # Update the plot
                 line_ext.set_data(freqs, ext_spectrum)
                 canvas_ext.draw()
@@ -328,9 +336,15 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 line_dif.set_data(freqs, dif_spectrum)
                 canvas_dif.draw()
 
-                analysis_window.after(20, update_spectrogram)
+            def periodic_update_ft():
+                from config import update_enabled
+                if not update_enabled:
+                    return
 
-            analysis_window.after(0, update_spectrogram)
+                update_spectrogram()
+                root.after(100, periodic_update_ft)  # actualització cada 100 ms
+
+            analysis_window.after(0, periodic_update_ft)
 
             # Button to pause/resume stream
             def toggle_stream():
@@ -474,15 +488,15 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             apply_button.pack(side="left", padx=5)
 
             # Create objects to store 31 bands and calculate avarage
-            global avarage_ext_in, avarage_in_from_sys
-            avarage_ext_in = None
-            avarage_in_from_sys = None
+            global avarage_ext_rta, avarage_sys_rta
+            avarage_ext_rta = None
+            avarage_sys_rta = None
 
             # Callback to update bar graph
             def update_rta_bars():
                 from config import buffer_data, buffer_lock, delay_buffer, delay_samples
 
-                global avarage_ext_in, avarage_in_from_sys, avarage
+                global avarage_ext_rta, avarage_sys_rta, avarage
 
                 # global stream_stop
                 if stream_stop:
@@ -551,22 +565,22 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                     sys_levels_db.append(db)
 
                 # Avarage --> Same as spectral time Avarage
-                if avarage_ext_in is None:
-                    avarage_ext_in = np.array([ext_levels_db])
+                if avarage_ext_rta is None:
+                    avarage_ext_rta = np.array([ext_levels_db])
                 else:
-                    avarage_ext_in = np.vstack([ext_levels_db, avarage_ext_in])
-                    while avarage < avarage_ext_in.shape[0]:
-                        avarage_ext_in = avarage_ext_in[:-1]
+                    avarage_ext_rta = np.vstack([ext_levels_db, avarage_ext_rta])
+                    while avarage < avarage_ext_rta.shape[0]:
+                        avarage_ext_rta = avarage_ext_rta[:-1]
 
-                if avarage_in_from_sys is None:
-                    avarage_in_from_sys = np.array([sys_levels_db])
+                if avarage_sys_rta is None:
+                    avarage_sys_rta = np.array([sys_levels_db])
                 else:
-                    avarage_in_from_sys = np.vstack([sys_levels_db, avarage_in_from_sys])
-                    while avarage < avarage_in_from_sys.shape[0]:
-                        avarage_in_from_sys = avarage_in_from_sys[:-1]
+                    avarage_sys_rta = np.vstack([sys_levels_db, avarage_sys_rta])
+                    while avarage < avarage_sys_rta.shape[0]:
+                        avarage_sys_rta = avarage_sys_rta[:-1]
                
-                ext_levels_db = np.mean(avarage_ext_in, axis=0)
-                sys_levels_db = np.mean(avarage_in_from_sys, axis=0)
+                ext_levels_db = np.mean(avarage_ext_rta, axis=0)
+                sys_levels_db = np.mean(avarage_sys_rta, axis=0)
 
                 # Diference / gain
                 dif_level_db = [a - b for a, b in zip(sys_levels_db, ext_levels_db)]
@@ -587,14 +601,14 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                     dif_bar.set_y(0 if level >= 0 else level)     # Start at 0 if positive, or at value if negative
                 dif_canvas_rta.draw()
                 
-            def periodic_update():
+            def periodic_update_rta():
                 from config import update_enabled
                 if not update_enabled:
                     return
                 update_rta_bars()
-                root.after(100, periodic_update)  # actualització cada 100 ms
+                root.after(100, periodic_update_rta)  # actualització cada 100 ms
 
-            analysis_window.after(0, periodic_update) 
+            analysis_window.after(0, periodic_update_rta) 
 
             # Button to pause/resume stream
             def toggle_stream():
@@ -642,6 +656,9 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             buffer_size = int(fs.get() * 0.5)  # 500 ms
 
             def update_delay():
+                # if not str(delay_info) in delay_info.tk.call("winfo", "children", "."): # If still exists, continue #####################
+                #     return
+                
                 from config import buffer_data, buffer_lock, delay_samples
 
                 with buffer_lock:
@@ -691,15 +708,15 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 ax_corr.autoscale_view()
                 canvas_corr.get_tk_widget().after(0, canvas_corr.draw)
 
-            def periodic_update():
+            def periodic_update_delay():
                 from config import update_enabled
                 if not update_enabled:
                     return
 
                 update_delay()
-                root.after(100, periodic_update)  # actualització cada 100 ms
+                root.after(100, periodic_update_delay)  # actualització cada 100 ms
 
-            analysis_window.after(0, periodic_update)
+            analysis_window.after(0, periodic_update_delay)
 
             # Button to pause/resume stream
             def toggle_stream():
