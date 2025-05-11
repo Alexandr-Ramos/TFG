@@ -19,8 +19,6 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
         ext_in_dev, ext_in_ch, out_to_sys_dev, out_to_sys_ch, in_from_sys_dev, in_from_sys_ch,
         fs, bit_depth, block_size): 
     
-    
-    
     # Calculate number of samples from milliseconds
     block_size_fft = int(fs.get() * block_size_ms / 1000)
 
@@ -32,7 +30,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
     if config.delay_buffer is None or config.delay_buffer.shape[0] != MAX_DELAY_SAMPLES:
         config.delay_buffer = np.zeros((MAX_DELAY_SAMPLES,), dtype=np.float32) # Put zeros in the buffer
     if config.delay_samples == None:
-        config.delay_samples = 0    # Initialize delay_samples
+        config.delay_samples = 100    # Initialize delay_samples
 
     global audio_stream
     audio_stream = None
@@ -208,6 +206,10 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
                 global avarage_ext_in, avarage_in_from_sys, avarage, freq_avarage
 
+                # global stream_stop
+                if stream_stop:
+                    return
+
                 if ext_in_ch.get() is None or ext_in_ch.get() < 1:
                     return
                 if in_from_sys_ch.get() is None or in_from_sys_ch.get() < 1:
@@ -330,6 +332,18 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
             analysis_window.after(0, update_spectrogram)
 
+            # Button to pause/resume stream
+            def toggle_stream():
+                global stream_stop
+                stream_stop = not stream_stop
+                if stream_stop:
+                    btn_pause.config(text="Resume")
+                else:
+                    btn_pause.config(text="Pause")
+
+            btn_pause = tk.Button(ft_page, text="Pause", command=toggle_stream, font=("Arial", 12))
+            btn_pause.pack(pady=10)
+
 
     #### PAGE 2: 31 Bands ####
     
@@ -346,31 +360,77 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             tk.Label(band31_page, text="31-Band RTA", font=("Arial", 14), bg="white").pack(pady=10)
 
             # Frequencies for 1/3 octave bands --> IEC 61260-3
-            center_freqs = np.array([ # Change to logspace################################
+            center_freqs = np.array([ # Change to logspace################################ --> Redaction
                 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160,
                 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600,
                 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000
             ])
 
-            # Create frame and canvas for bar plot
-            rta_frame = tk.Frame(band31_page)
-            rta_frame.pack(fill="both", expand=True, padx=20, pady=10)
+            # Create frame and canvas for bar plot --> Ext In
+            ext_rta_frame = tk.Frame(band31_page)
+            ext_rta_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
-            fig_rta, ax_rta = plt.subplots(figsize=(8, 3))
+            # Create frame and canvas for bar plot --> In from Sys
+            sys_rta_frame = tk.Frame(band31_page)
+            sys_rta_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+            # Create frame and canvas for bar plot --> Diference / Gain
+            dif_rta_frame = tk.Frame(band31_page)
+            dif_rta_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+            # Initialize plot --> Ext In
+            ext_fig_rta, ext_ax_rta = plt.subplots(figsize=(8, 3))
             x_positions = np.arange(len(center_freqs))
-            bars = ax_rta.bar(x_positions, np.zeros_like(center_freqs), width=0.8, align='center', bottom = -80) #-80 = origin
-            ax_rta.set_xticks(x_positions)
-            ax_rta.set_xlim(20, 20000)
-            ax_rta.set_ylim(-80, 0)
-            ax_rta.set_xticks(x_positions)
-            ax_rta.set_xticklabels([str(f) for f in center_freqs], rotation=45)
-            ax_rta.set_xlabel("Frequency (Hz)")
-            ax_rta.set_ylabel("Level (dB RMS)")
-            ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
-            ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
+            ext_bars = ext_ax_rta.bar(x_positions, np.zeros_like(center_freqs), width=0.8, align='center', bottom = -80) #-80 = origin
+            ext_ax_rta.set_xticks(x_positions)
+            ext_ax_rta.set_xlim(20, 20000)
+            ext_ax_rta.set_ylim(-80, 0)
+            ext_ax_rta.set_xticks(x_positions)
+            ext_ax_rta.set_xticklabels([str(f) for f in center_freqs], rotation=45)
+            ext_ax_rta.set_xlabel("Frequency (Hz)")
+            ext_ax_rta.set_ylabel("Level (dB RMS) --> External Input")
+            ext_ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
+            ext_ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
 
-            canvas_rta = FigureCanvasTkAgg(fig_rta, master=rta_frame)
-            canvas_rta.get_tk_widget().pack(fill="both", expand=True)
+            # Initialize plot --> In from Sys
+            sys_fig_rta, sys_ax_rta = plt.subplots(figsize=(8, 3))
+            x_positions = np.arange(len(center_freqs))
+            sys_bars = sys_ax_rta.bar(x_positions, np.zeros_like(center_freqs), width=0.8, align='center', bottom = -80) #-80 = origin
+            sys_ax_rta.set_xticks(x_positions)
+            sys_ax_rta.set_xlim(20, 20000)
+            sys_ax_rta.set_ylim(-80, 0)
+            sys_ax_rta.set_xticks(x_positions)
+            sys_ax_rta.set_xticklabels([str(f) for f in center_freqs], rotation=45)
+            sys_ax_rta.set_xlabel("Frequency (Hz)")
+            sys_ax_rta.set_ylabel("Level (dB RMS) --> Input form System")
+            sys_ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
+            sys_ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
+
+            # Initialize plot --> Diference / gain
+            dif_fig_rta, dif_ax_rta = plt.subplots(figsize=(8, 3))
+            x_positions = np.arange(len(center_freqs))
+            dif_bars = dif_ax_rta.bar(x_positions, np.zeros_like(center_freqs), width=0.8, align='center', bottom = -80) #-80 = origin
+            dif_ax_rta.set_xticks(x_positions)
+            dif_ax_rta.set_xlim(20, 20000)
+            dif_ax_rta.set_ylim(-20, 20)
+            dif_ax_rta.set_xticks(x_positions)
+            dif_ax_rta.set_xticklabels([str(f) for f in center_freqs], rotation=45)
+            dif_ax_rta.set_xlabel("Frequency (Hz)")
+            dif_ax_rta.set_ylabel("Level (dB RMS) --> Gain of System")
+            dif_ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
+            dif_ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
+
+            # Canvas --> Ext in
+            ext_canvas_rta = FigureCanvasTkAgg(ext_fig_rta, master=ext_rta_frame)
+            ext_canvas_rta.get_tk_widget().pack(fill="both", expand=True)
+
+            # Canvas --> In from Sys
+            sys_canvas_rta = FigureCanvasTkAgg(sys_fig_rta, master=sys_rta_frame)
+            sys_canvas_rta.get_tk_widget().pack(fill="both", expand=True)
+
+            # Canvas --> Diference / Gain
+            dif_canvas_rta = FigureCanvasTkAgg(dif_fig_rta, master=dif_rta_frame)
+            dif_canvas_rta.get_tk_widget().pack(fill="both", expand=True)
 
             # Design bandpass filters for each 1/3 octave band
             sos_filters = []
@@ -386,90 +446,167 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 sos = signal.butter(N=4, Wn=[low, high], btype='band', fs=fs.get(), output='sos')
                 sos_filters.append(sos)
 
+            # Frame to hold the entry and the Apply button in one line
+            avarage_frame = tk.Frame(band31_page, bg="white")
+            avarage_frame.pack(pady=10)
+
+            #Label
+            tk.Label(avarage_frame, text="Time avarage:", bg="white").pack(side="left", padx=(0, 5))
+
+            # Entry box for integer value
+            avar_entry = tk.Entry(avarage_frame, width=10)
+            avar_entry.pack(side="left", padx=10)
+
+            # Apply button next to entry
+            global avarage
+            avarage = 1
+
+            def apply_value():
+                try:
+                    global avarage
+                    avarage = int(avar_entry.get())
+                    print(f"[INFO] Applied value: {avarage}")
+                    
+                except ValueError:
+                    print("[WARN] Invalid integer input")
+
+            apply_button = tk.Button(avarage_frame, text="Apply", command=apply_value)
+            apply_button.pack(side="left", padx=5)
+
+            # Create objects to store 31 bands and calculate avarage
+            global avarage_ext_in, avarage_in_from_sys
+            avarage_ext_in = None
+            avarage_in_from_sys = None
+
             # Callback to update bar graph
             def update_rta_bars():
-                global buffer_data, buffer_lock
+                from config import buffer_data, buffer_lock, delay_buffer, delay_samples
+
+                global avarage_ext_in, avarage_in_from_sys, avarage
+
+                # global stream_stop
+                if stream_stop:
+                    return
+
+                if ext_in_ch.get() is None or ext_in_ch.get() < 1:
+                    return
+                if in_from_sys_ch.get() is None or in_from_sys_ch.get() < 1:
+                    return
 
                 with buffer_lock:
                     if buffer_data is None:
                         return
-                    indata=buffer_data.copy()
+                    indata=buffer_data.copy()               
+               
+                # Select the correct channel (convert 1-based index to 0-based)
+                ext_data = indata[:, ext_in_ch.get() - 1]
+                sys_data = indata[:, in_from_sys_ch.get() - 1]
 
-                print(f"[DEBUG] indata shape: {indata.shape}") ######################## DEBUG
-                
-                # # global stream_stop
-                # if stream_stop:
-                #     return
+                #############################################3
+                # Shift delay_buffer and insert new ext_in samples
+                if config.delay_buffer is not None and config.delay_buffer.shape[0] >= len(ext_data):
+                    config.delay_buffer[:] = np.roll(config.delay_buffer, -len(ext_data))
+                    config.delay_buffer[-len(ext_data):] = ext_data
 
-                # if ext_in_dev.get() is None or ext_in_ch.get() is None:
-                #     return
-                
-                # if not canvas_rta.get_tk_widget().winfo_exists():
-                #     return  # If it isn't updatable, do not update.
-                
-                audio_data = indata[:, ext_in_ch.get() - 1]
-                # window = np.blackman(len(audio_data)) ###############################
-                # audio_data *= window
+                if delay_buffer is None or len(delay_buffer) < delay_samples + block_size.get():
+                    analysis_window.after(100, update_rta_bars)
+                    return  # not enought sampes to start
+                                
+                if config.delay_samples is None or config.delay_samples < 0:
+                    print("[ERROR] delay_samples is invalid")
+                    analysis_window.after(100, update_rta_bars)
+                    return
 
-                # Compute RMS in each band
-                levels_db = []
+                if len(config.delay_buffer) < config.delay_samples + block_size.get():
+                    print("[DEBUG] delay_buffer too short")
+                    analysis_window.after(100, update_rta_bars)
+                    return
+                
+                # Get delayed data
+                if config.delay_samples == 0:
+                    ext_data = config.delay_buffer[-block_size.get():]
+                else:
+                    ext_data = config.delay_buffer[-(config.delay_samples + block_size.get()):-config.delay_samples]
+                                
+                if ext_data is None or len(ext_data) < block_size.get():
+                    analysis_window.after(100, update_rta_bars)
+                    print("[DEBUG] Delayed ext_data too short")
+                    return
+                #################################################################################################
+
+                # Compute RMS in each band --> ext
+                ext_levels_db = []
                 for sos in sos_filters:
-                    filtered = signal.sosfilt(sos, audio_data)
+                    filtered = signal.sosfilt(sos, ext_data)
                     rms = np.sqrt(np.mean(filtered ** 2))
                     db = 20 * np.log10(rms + 1e-6)
-                    levels_db.append(db)
+                    ext_levels_db.append(db)
 
-                # Update bar heights
-                for bar, level in zip(bars, levels_db):
-                    bar.set_height(level + 80) # form -80 dB to value.
+                # Compute RMS in each band --> sys
+                sys_levels_db = []
+                for sos in sos_filters:
+                    filtered = signal.sosfilt(sos, sys_data)
+                    rms = np.sqrt(np.mean(filtered ** 2))
+                    db = 20 * np.log10(rms + 1e-6)
+                    sys_levels_db.append(db)
 
-                canvas_rta.get_tk_widget().after(0, canvas_rta.draw)
+                # Avarage --> Same as spectral time Avarage
+                if avarage_ext_in is None:
+                    avarage_ext_in = np.array([ext_levels_db])
+                else:
+                    avarage_ext_in = np.vstack([ext_levels_db, avarage_ext_in])
+                    while avarage < avarage_ext_in.shape[0]:
+                        avarage_ext_in = avarage_ext_in[:-1]
 
-            # # Start stream for 31-band RTA
-            # def start_rta_stream():
-            #     global audio_stream
-            #     # stop_current_stream()
+                if avarage_in_from_sys is None:
+                    avarage_in_from_sys = np.array([sys_levels_db])
+                else:
+                    avarage_in_from_sys = np.vstack([sys_levels_db, avarage_in_from_sys])
+                    while avarage < avarage_in_from_sys.shape[0]:
+                        avarage_in_from_sys = avarage_in_from_sys[:-1]
+               
+                ext_levels_db = np.mean(avarage_ext_in, axis=0)
+                sys_levels_db = np.mean(avarage_in_from_sys, axis=0)
 
-            #     # try:
-            #     #     if audio_stream:
-            #     #         audio_stream.stop()
-            #     #         audio_stream.close()
-            #     # except Exception:
-            #     #     pass
+                # Diference / gain
+                dif_level_db = [a - b for a, b in zip(sys_levels_db, ext_levels_db)]
 
-            #     # if ext_in_dev.get() <= 0:
-            #     #     return
+                # Update bar heights --> Ext
+                for ext_bar, level in zip(ext_bars, ext_levels_db):
+                    ext_bar.set_height(level + 80) # form -80 dB to value.
+                ext_canvas_rta.draw()
+
+                # Update bar heights --> Sys
+                for sys_bar, level in zip(sys_bars, sys_levels_db):
+                    sys_bar.set_height(level + 80) # form -80 dB to value.
+                sys_canvas_rta.draw()
+
+                # Update bar heights --> Dif
+                for dif_bar, level in zip(dif_bars, dif_level_db):
+                    dif_bar.set_height(abs(level))                # Always positive height
+                    dif_bar.set_y(0 if level >= 0 else level)     # Start at 0 if positive, or at value if negative
+                dif_canvas_rta.draw()
                 
-            #     # audio_stream.stop()
-            #     # audio_stream.close()
-            #     #######################################################################33
-            #     try: # Heare is not the problem
-
-            #         audio_stream = sd.InputStream(
-            #             device=ext_in_dev.get(),
-            #             channels=ext_in_ch.get(),
-            #             samplerate=fs.get(),
-            #             blocksize=block_size_fft,
-            #             callback=update_rta_bars
-            #         )
-            #         audio_stream.start()
-
-            #         print("[INFO] Stream started")
-            #     except Exception as e:
-            #         print(f"[ERROR] Could not open input stream(RTA): {e}")
-            #         audio_stream = None
-
-            # analysis_window.after(0, start_rta_stream) #Start after GUI
-
             def periodic_update():
                 from config import update_enabled
                 if not update_enabled:
                     return
-
                 update_rta_bars()
                 root.after(100, periodic_update)  # actualització cada 100 ms
 
-            analysis_window.after(0, periodic_update)
+            analysis_window.after(0, periodic_update) 
+
+            # Button to pause/resume stream
+            def toggle_stream():
+                global stream_stop
+                stream_stop = not stream_stop
+                if stream_stop:
+                    btn_pause.config(text="Resume")
+                else:
+                    btn_pause.config(text="Pause")
+
+            btn_pause = tk.Button(band31_page, text="Pause", command=toggle_stream, font=("Arial", 12))
+            btn_pause.pack(pady=10)
 
 
     #### PAGE 3: Delay ####
@@ -505,21 +642,21 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             buffer_size = int(fs.get() * 0.5)  # 500 ms
 
             def update_delay():
-                global buffer_data, buffer_lock
+                from config import buffer_data, buffer_lock, delay_samples
 
                 with buffer_lock:
                     if buffer_data is None:
                         return
                     indata = buffer_data.copy()
 
-                print(f"[DEBUG] indata shape: {indata.shape}") ######################## DEBUG
+                #print(f"[DEBUG] indata shape: {indata.shape}") ######################## DEBUG
                 
-                # # global stream_stop
-                # if stream_stop:
-                #     return
+                # global stream_stop
+                if stream_stop:
+                    return
 
-                # if ext_in_dev.get() is None or ext_in_ch.get() is None or in_from_sys_dev.get() is None or in_from_sys_ch.get() is None:
-                #     return
+                if ext_in_dev.get() is None or ext_in_ch.get() is None or in_from_sys_dev.get() is None or in_from_sys_ch.get() is None:
+                    return
 
                 sig1 = indata[:, ext_in_ch.get() - 1]
                 sig2 = indata[:, in_from_sys_ch.get() - 1]
@@ -554,26 +691,6 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 ax_corr.autoscale_view()
                 canvas_corr.get_tk_widget().after(0, canvas_corr.draw)
 
-
-            # def start_delay_stream():
-            #     global audio_stream
-
-            #     try:
-            #         audio_stream = sd.InputStream(
-            #             device=ext_in_dev.get(),  # assuming same device for simplicity
-            #             channels=max(ext_in_ch.get(), in_from_sys_ch.get()),
-            #             samplerate=fs.get(),
-            #             blocksize=buffer_size,
-            #             callback=update_delay
-            #         )
-            #         audio_stream.start()
-            #         print("[INFO] Delay stream started")
-            #     except Exception as e:
-            #         print(f"[ERROR] Could not open delay input stream: {e}")
-            #         audio_stream = None
-
-            # analysis_window.after(0, start_delay_stream)
-
             def periodic_update():
                 from config import update_enabled
                 if not update_enabled:
@@ -583,7 +700,6 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 root.after(100, periodic_update)  # actualització cada 100 ms
 
             analysis_window.after(0, periodic_update)
-
 
             # Button to pause/resume stream
             def toggle_stream():
