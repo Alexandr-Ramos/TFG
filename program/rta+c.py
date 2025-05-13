@@ -26,8 +26,6 @@ led = led_canvas.create_oval(2, 2, 18, 18, fill="red")
 
 
 # "Global" objects
-# dummy1 = tk.IntVar(master=root, value=0)
-# dummy2 = tk.StringVar(master=root, value="default")
 ext_in_dev = tk.IntVar(value=-1)
 ext_in_ch = tk.IntVar(value=-1)
 out_to_sys_dev = tk.IntVar(value=-1)
@@ -37,11 +35,6 @@ in_from_sys_ch = tk.IntVar(value=-1)
 fs = tk.IntVar(value=44100)
 bit_depth = tk.IntVar(value=16)
 block_size = tk.IntVar(value=1024)
-
-# Stream management #########################################
-if config.audio_stream_ext_in is not None:
-    print("[INFO] Stream is active")
-
 
 def start_global_stream():
     # from config import audio_stream_ext_in, buffer_data, buffer_lock

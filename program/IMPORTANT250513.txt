@@ -1,0 +1,58 @@
+import scipy.signal as signal
+import numpy as np
+sos1 = signal.butter(N=4, Wn=[16, 20], fs=44100, btype='band', output='sos')
+sos2 = signal.butter(N=4, Wn=[16000, 20000], fs=44100, btype='band', output='sos')
+delta = np.zeros(10000)
+delta[0] = 1
+h1 = signal.sosfilt(delta)
+h1 = signal.sosfilt(sos1 ,delta)
+h2 = signal.sosfilt(sos2 ,delta)
+import matplotlib.pyplotlo
+import matplotlib.pyplot as plt
+plt.plot(h1)
+plt.show()
+delta = np.zeros(100000)
+delta[0] = 1
+h1 = signal.sosfilt(sos1 ,delta)
+h2 = signal.sosfilt(sos2 ,delta)
+plt.plot(h1)
+plt.plot(h2)
+plt.show()
+h1 = h1/max(h1)
+h2 = h2/max(h2)
+t = np.arange(len(delta))/44100
+plt.plot(t, h1)
+plt.plot(t, h2)
+plt.show()
+ht = h1 + h2
+plt.semilogx(np.abs(np.fft(ht)))
+plt.semilogx(np.abs(np.fft.fft(ht)))
+plt.show()
+sos2 = signal.butter(N=4, Wn=[1600, 2000], fs=44100, btype='band', output='sos')
+h2 = signal.sosfilt(sos2 ,delta)
+h2 = h2/max(h2)
+ht = h1 + h2
+plt.semilogx(np.abs(np.fft.fft(ht)))
+plt.show()
+h1 = signal.sosfilt(sos1 ,delta)
+h2 = signal.sosfilt(sos2 ,delta)
+ht = h1 + h2
+plt.semilogx(np.abs(np.fft.fft(ht)))
+plt.show()
+ht = h1 + h2 * 2
+plt.semilogx(np.abs(np.fft.fft(ht)))
+plt.show()
+n=np.random.randn(10000)
+brown = np.linspac
+brown = signal.lfilter?
+brown = signal.lfilter(1, -1)
+brown = signal.lfilter(1, (1, -1), n)
+plt.plot(np.abs(np.fft.fft(brown)))
+plt.show()
+plt.semilogy(np.abs(np.fft.fft(brown)))
+plt.show()
+save 250513.txt
+save "250513.txt"
+save "prueba250513.txt"
+save 'prueba250513.txt'
+%history -f 'prueba250513.txt'

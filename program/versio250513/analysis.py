@@ -410,10 +410,9 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ext_ax_rta.set_xlim(20, 20000)
             ext_ax_rta.set_ylim(-80, 0)
             ext_ax_rta.set_xticks(x_positions)
-            ext_ax_rta.set_xticklabels(["" for f in center_freqs], rotation=45)
-            # ext_ax_rta.set_xlabel("Frequency (Hz)")
-            ext_ax_rta.set_ylabel("Level (dB RMS)")
-            ext_fig_rta.suptitle("External Input")
+            ext_ax_rta.set_xticklabels([str(f) for f in center_freqs], rotation=45)
+            ext_ax_rta.set_xlabel("Frequency (Hz)")
+            ext_ax_rta.set_ylabel("Level (dB RMS) --> External Input")
             ext_ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
             ext_ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
 
@@ -425,10 +424,9 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             sys_ax_rta.set_xlim(20, 20000)
             sys_ax_rta.set_ylim(-80, 0)
             sys_ax_rta.set_xticks(x_positions)
-            sys_ax_rta.set_xticklabels(["" for f in center_freqs], rotation=45)
-            # sys_ax_rta.set_xlabel("Frequency (Hz)")
-            sys_ax_rta.set_ylabel("Level (dB RMS)")
-            sys_fig_rta.suptitle("Input form System")
+            sys_ax_rta.set_xticklabels([str(f) for f in center_freqs], rotation=45)
+            sys_ax_rta.set_xlabel("Frequency (Hz)")
+            sys_ax_rta.set_ylabel("Level (dB RMS) --> Input form System")
             sys_ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
             sys_ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
 
@@ -442,8 +440,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             dif_ax_rta.set_xticks(x_positions)
             dif_ax_rta.set_xticklabels([str(f) for f in center_freqs], rotation=45)
             dif_ax_rta.set_xlabel("Frequency (Hz)")
-            dif_ax_rta.set_ylabel("Level (dB)") ####################################3
-            dif_fig_rta.suptitle("Diference / Gain")
+            dif_ax_rta.set_ylabel("Level (dB RMS) --> Gain of System")
             dif_ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
             dif_ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
 
