@@ -77,17 +77,6 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
     bypass_btn = tk.Button(dsp_window, text="Start Bypass", font=("Arial", 16), command=start_bypass)
     bypass_btn.pack(pady=40)
 
-    # # Stop button
-    # stop_btn = tk.Button(dsp_window, text="Stop", font=("Arial", 12), command=stop_bypass_stream)
-    # stop_btn.pack(pady=10)
-
     # Status label
     status_label = tk.Label(dsp_window, text="", fg="green")
     status_label.pack(pady=10)
-
-    # On close, stop stream
-    # def on_close():
-    #     stop_bypass_stream()
-    #     dsp_window.destroy()
-
-    # dsp_window.protocol("WM_DELETE_WINDOW", on_close)

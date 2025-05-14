@@ -103,7 +103,7 @@ lbl_out_to_sys.pack(pady=5)
 lbl_in_from_sys = tk.Label(root, text="Selected input from system device: None, channel: None")
 lbl_in_from_sys.pack(pady=5)
 
-# Butons to control global stream ############################################
+# Butons to control global stream
 stream_button_frame = tk.Frame(root)
 stream_button_frame.pack(pady=10)
 
@@ -132,10 +132,6 @@ analysis_button = tk.Button(main_button_frame, text="Analysis", font=("Arial", 1
     )
 analysis_button.grid(row=0, column=0, padx=10)
 
-# # Placeholder (for future content in between)
-# middle_placeholder = tk.Label(main_button_frame, text="", width=10)
-# middle_placeholder.grid(row=0, column=1)
-
 # Big Correction button
 correction_button = tk.Button(main_button_frame, text="Correction (DSP)", font=("Arial", 16), width=15, height=4, 
     command=lambda: open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
@@ -153,4 +149,20 @@ root.protocol("WM_DELETE_WINDOW", on_root_close)
 
 update_led()  # Start monitoring buffer updates
 
+# Auto Config: Heare you can set a default config to apply in just one click
+def auto_config():
+    ext_in_dev.set(4)
+    ext_in_ch.set(1)
+    in_from_sys_dev.set(4)
+    in_from_sys_ch.set(2)
+    block_size.set(1024)
+    fs.set(44100)
+
+    print("[INFO] Auto Config applied.")
+
+# Botó visual
+btn_auto_config = tk.Button(root, text="Auto Config", command=auto_config)
+btn_auto_config.pack(pady=10)
+
+# Start all:
 root.mainloop()

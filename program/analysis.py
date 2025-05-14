@@ -54,7 +54,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
     sidebar.pack(side="left", fill="y")
     content.pack(side="right", expand=True, fill="both")
 
-    # Dictionary to hold pages ################################################
+    # Dictionary to hold pages
     pages = {}
     loaded_pages = {}
 
@@ -66,7 +66,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
  
             # Destroy and unload current pages
             config.update_enabled = False
-            time.sleep(0.3)                 #Give time for end whatever was executing
+            time.sleep(0.3) #Give time for end whatever was executing
             
             # Close all matplotlib figures to prevent memory leak
             for fig in plt.get_fignums():
@@ -80,13 +80,14 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             loaded_pages.clear()
             print("[INFO] Cleared previous pages")
             
-
-            # Destroy any active page ####################################################################
+            # Destroy any active page
             for name in list(pages.keys()):
                 pages[name].destroy()  # remove from memory
                 del pages[name]
                 del loaded_pages[name]
             print("[INFO] Deleted previous pages")
+
+            time.sleep(0.3) #Give more time
 
             config.update_enabled = True
             print(page_name)
@@ -151,8 +152,9 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ax_ext.set_xlim(10, 40000)  # Limit to 20kHz
             ax_ext.set_ylim(-80, 0)  # dB scale
             ax_ext.set_xscale("log")
-            ax_ext.set_xlabel("Frequency (Hz)")
-            ax_ext.set_ylabel("Amplitude (dB) EXT_IN")
+            # ax_ext.set_xlabel("Frequency [Hz]")
+            ax_ext.set_ylabel("Amplitude [dB] EXT_IN")
+            fig_ext.suptitle("External Input")
             ax_ext.tick_params(axis='x', which='both', labelsize=8)
             ax_ext.grid(True, which='both', linestyle='--', linewidth=0.5)
 
@@ -161,8 +163,9 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ax_sys.set_xlim(10, 40000)  # Limit to 20kHz
             ax_sys.set_ylim(-80, 0)  # dB scale
             ax_sys.set_xscale("log")
-            ax_sys.set_xlabel("Frequency (Hz)")
-            ax_sys.set_ylabel("Amplitude (dB) IN_FROM_SYS")
+            # ax_sys.set_xlabel("Frequency [Hz]")
+            ax_sys.set_ylabel("Amplitude [dB]")
+            fig_sys.suptitle("Input from System")
             ax_sys.tick_params(axis='x', which='both', labelsize=8)
             ax_sys.grid(True, which='both', linestyle='--', linewidth=0.5)
 
@@ -171,8 +174,9 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ax_dif.set_xlim(10, 40000)  # Limit to 20kHz
             ax_dif.set_ylim(-20, 20)  # dB scale
             ax_dif.set_xscale("log")
-            ax_dif.set_xlabel("Frequency (Hz)")
-            ax_dif.set_ylabel("Amplitude (dB) System Gain")
+            ax_dif.set_xlabel("Frequency [Hz]")
+            ax_dif.set_ylabel("Gain [dB]")
+            fig_dif.suptitle("System Gain")
             ax_dif.tick_params(axis='x', which='both', labelsize=8)
             ax_dif.grid(True, which='both', linestyle='--', linewidth=0.5)
 
@@ -325,8 +329,8 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                         ext_spectrum = np.convolve(ext_spectrum, window, mode='same')
                         sys_spectrum = np.convolve(sys_spectrum, window, mode='same')
 
-                if ext_spectrum.ndim != 1 or ext_spectrum.shape[0] != freqs.shape[0]: # Sometimes randomly happen. But with this, it works.
-                    print("[ERROR] Averaged spectrum shape mismatch:", ext_spectrum.shape)
+                if ext_spectrum.ndim != 1 or ext_spectrum.shape[0] != freqs.shape[0]: # Ussually in first iteration happens.
+                    # print("[ERROR] Averaged spectrum shape mismatch:", ext_spectrum.shape)
                     analysis_window.after(100, update_spectrogram)
                     return
 
@@ -352,7 +356,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                     return
 
                 update_spectrogram()
-                root.after(100, periodic_update_ft)  # actualització cada 100 ms
+                root.after(100, periodic_update_ft)
 
             analysis_window.after(0, periodic_update_ft)
 
@@ -411,8 +415,8 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             ext_ax_rta.set_ylim(-80, 0)
             ext_ax_rta.set_xticks(x_positions)
             ext_ax_rta.set_xticklabels(["" for f in center_freqs], rotation=45)
-            # ext_ax_rta.set_xlabel("Frequency (Hz)")
-            ext_ax_rta.set_ylabel("Level (dB RMS)")
+            # ext_ax_rta.set_xlabel("Frequency [Hz]")
+            ext_ax_rta.set_ylabel("Level [dB RMS]")
             ext_fig_rta.suptitle("External Input")
             ext_ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
             ext_ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
@@ -426,8 +430,8 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             sys_ax_rta.set_ylim(-80, 0)
             sys_ax_rta.set_xticks(x_positions)
             sys_ax_rta.set_xticklabels(["" for f in center_freqs], rotation=45)
-            # sys_ax_rta.set_xlabel("Frequency (Hz)")
-            sys_ax_rta.set_ylabel("Level (dB RMS)")
+            # sys_ax_rta.set_xlabel("Frequency [Hz]")
+            sys_ax_rta.set_ylabel("Level [dB RMS]")
             sys_fig_rta.suptitle("Input form System")
             sys_ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
             sys_ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
@@ -441,9 +445,9 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             dif_ax_rta.set_ylim(-20, 20)
             dif_ax_rta.set_xticks(x_positions)
             dif_ax_rta.set_xticklabels([str(f) for f in center_freqs], rotation=45)
-            dif_ax_rta.set_xlabel("Frequency (Hz)")
-            dif_ax_rta.set_ylabel("Level (dB)") ####################################3
-            dif_fig_rta.suptitle("Diference / Gain")
+            dif_ax_rta.set_xlabel("Frequency [Hz]")
+            dif_ax_rta.set_ylabel("Gain [dB]")
+            dif_fig_rta.suptitle("System Gain")
             dif_ax_rta.grid(True, which='both', linestyle='--', linewidth=0.5)
             dif_ax_rta.set_xlim(-0.5, len(center_freqs) - 0.5)
 
@@ -501,17 +505,18 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             apply_button.pack(side="left", padx=5)
 
             # Create objects to store 31 bands and calculate avarage
-            global avarage_ext_rta, avarage_sys_rta
+            global avarage_ext_rta, avarage_sys_rta, dif_level_db
             avarage_ext_rta = None
             avarage_sys_rta = None
+            dif_level_db = None
 
             # Callback to update bar graph
             def update_rta_bars():
                 from config import buffer_data, buffer_lock, delay_buffer, delay_samples
 
-                global avarage_ext_rta, avarage_sys_rta, avarage, stream_stop
+                global avarage_ext_rta, avarage_sys_rta, avarage, stream_stop, dif_level_db
 
-                print("[DEBUG] update_rta_bars is alive") #######################################################################################
+                # print("[DEBUG] update_rta_bars is alive") # When tkinter freezes, this still works
 
                 # global stream_stop
                 if stream_stop:
@@ -598,7 +603,7 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 # Diference / gain
                 dif_level_db = [a - b for a, b in zip(sys_levels_db, ext_levels_db)]
 
-                print("[DEBUG] canvas_rta is being drawn") ##########################################################################################
+                # print("[DEBUG] canvas_rta is being drawn") # When tkinter freezes, this still works
 
                 # Update bar heights --> Ext
                 for ext_bar, level in zip(ext_bars, ext_levels_db):
@@ -634,8 +639,27 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 else:
                     btn_pause.config(text="Pause")
 
-            btn_pause = tk.Button(band31_page, text="Pause", command=toggle_stream, font=("Arial", 12))
-            btn_pause.pack(pady=10)
+            # Save Gain values
+            button_frame = tk.Frame(band31_page, bg="white")
+            button_frame.pack(pady=10)
+
+            apply_msg = tk.Label(button_frame, text="", font=("Arial", 12), bg="white")
+            apply_msg.pack(side="right", padx=5)
+
+            def save_gain():
+                global dif_level_db
+                if dif_level_db is None:
+                    apply_msg.config(text="NOT saved", font=("Arial", 12))
+                else:
+                    config.gain_values = dif_level_db
+                    print(f"[INFO] Gain saved: {config.gain_values}")
+                    apply_msg.config(text="Saved", font=("Arial", 12))
+
+            btn_pause = tk.Button(button_frame, text="Pause", command=toggle_stream, font=("Arial", 12))
+            btn_pause.pack(side="left", pady=10)
+
+            btn_pause = tk.Button(button_frame, text="Save Gain", command=save_gain, font=("Arial", 12))
+            btn_pause.pack(side="right", pady=10)
 
 
     #### PAGE 3: Delay ####
@@ -651,6 +675,9 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
             delay_info = tk.Label(delay_page, text="Delay: -- samples / -- ms", font=("Arial", 12))
             delay_info.pack(pady=10)
+
+            global lag_samples
+            lag_samples = 0
 
             # Frame for plot
             plot_frame = tk.Frame(delay_page)
@@ -671,18 +698,14 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             buffer_size = int(fs.get() * 0.5)  # 500 ms
 
             def update_delay():
-                # if not str(delay_info) in delay_info.tk.call("winfo", "children", "."): # If still exists, continue #####################
-                #     return
-                
-                from config import buffer_data, buffer_lock, delay_samples
+                from config import buffer_data, buffer_lock
+                global lag_samples
 
                 with buffer_lock:
                     if buffer_data is None:
                         return
                     indata = buffer_data.copy()
 
-                #print(f"[DEBUG] indata shape: {indata.shape}") ######################## DEBUG
-                
                 # global stream_stop
                 if stream_stop:
                     return
@@ -746,8 +769,23 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 else:
                     btn_pause.config(text="Pause")
 
-            btn_pause = tk.Button(delay_page, text="Pause", command=toggle_stream, font=("Arial", 12))
-            btn_pause.pack(pady=10)
+            # Save delay value
+            button_frame = tk.Frame(delay_page, bg="white")
+            button_frame.pack(pady=10)
+
+            apply_msg = tk.Label(button_frame, text="", font=("Arial", 12), bg="white")
+            apply_msg.pack(side="right", padx=5)
+
+            def save_delay():
+                global lag_samples
+                config.delay_samples = lag_samples
+                apply_msg.config(text=f"Current value is {lag_samples} samples", font=("Arial", 12))
+
+            btn_pause = tk.Button(button_frame, text="Pause", command=toggle_stream, font=("Arial", 12))
+            btn_pause.pack(side="left", pady=10)
+
+            btn_apply = tk.Button(button_frame, text="Apply", command=save_delay, font=("Arial", 12))
+            btn_apply.pack(side="right", padx=10)
 
     #### Sidebar Buttons ####
     buttons = [

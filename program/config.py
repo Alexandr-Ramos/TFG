@@ -16,3 +16,5 @@ update_enabled = True
 
 last_update_time = 10000  # Timestamp of last buffer update
 
+gain_values = None # Gain read from 31 Bands and applyed in DSP
+
