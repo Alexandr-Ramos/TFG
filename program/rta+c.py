@@ -43,31 +43,54 @@ def start_global_stream():
         print("[INFO] Stream is active.")
         return
 
-    channels = max(ext_in_ch.get(), in_from_sys_ch.get())
+    channels = max(ext_in_ch.get(), in_from_sys_ch.get()) #input
     blocksize = block_size.get()
     samplerate = fs.get()
+    output_channel = max(1, out_to_sys_ch.get()) # at least 1
 
+    # Initialize output buffer with zeros (mono buffer)
+    config.buffer_output = np.zeros((blocksize, 1), dtype=np.float32)
+
+    #input callback
     def audio_callback(indata, frames, time_info, status):
-        # global buffer_data
         # Write incoming audio to the shared buffer
         with config.buffer_lock:
             config.buffer_data = indata.copy()
 
-        config.last_update_time = time.time()  # Track last update timestamp
+        config.last_update_time = time.time()  # Track last update timestamp for status led
 
-        # Debug
-        # print(f"[DEBUG] Stream callback: buffer updated with shape {indata.shape}")
+    # Outpu stream
+    def output_callback(outdata, frames, time_info, status):
+        # Write output buffer to output stream
+        with config.buffer_lock:
+            outdata[:] = config.buffer_output
+        
+        config.last_update_time = time.time()  # Track last update timestamp for status led
+
 
     try:
-        stream = sd.InputStream(
+        stream = sd.InputStream( # Input
             device=ext_in_dev.get(),
             channels=channels,
             samplerate=samplerate,
             blocksize=blocksize,
             callback=audio_callback
         )
-        stream.start()
+
+        output_stream = sd.OutputStream(
+            device=out_to_sys_dev.get(),
+            channels=output_channel,
+            samplerate=samplerate,
+            blocksize=blocksize,
+            callback=output_callback
+        )
+
+        stream.start() # Input
         config.audio_stream_ext_in = stream
+
+        output_stream.start()
+        config.audio_stream_out_to_sys = output_stream
+
         print("[INFO] Global stream started.")
     except Exception as e:
         print(f"[ERROR] It is not possible to start global Stream: {e}")
@@ -78,7 +101,13 @@ def stop_global_stream():
         config.audio_stream_ext_in.stop()
         config.audio_stream_ext_in.close()
         config.audio_stream_ext_in = None
-        print("[INFO] Stream global aturat.")
+        print("[INFO] Input stream global stop.")
+
+    if config.audio_stream_out_to_sys:
+        config.audio_stream_out_to_sys.stop()
+        config.audio_stream_out_to_sys.close()
+        config.audio_stream_out_to_sys = None
+        print("[INFO] Output stream global stop.")
 
 def update_led():
     now = time.time()
@@ -151,12 +180,14 @@ update_led()  # Start monitoring buffer updates
 
 # Auto Config: Heare you can set a default config to apply in just one click
 def auto_config():
-    ext_in_dev.set(4)
-    ext_in_ch.set(1)
-    in_from_sys_dev.set(4)
-    in_from_sys_ch.set(2)
-    block_size.set(1024)
-    fs.set(44100)
+    ext_in_dev.set(4) # 4
+    ext_in_ch.set(1) # 1
+    out_to_sys_dev.set(4) # 4
+    out_to_sys_ch.set(1) # 1
+    in_from_sys_dev.set(4) # 4
+    in_from_sys_ch.set(2) # 2
+    block_size.set(65536) # 1024 ################
+    fs.set(44100) # 44100
 
     print("[INFO] Auto Config applied.")
 

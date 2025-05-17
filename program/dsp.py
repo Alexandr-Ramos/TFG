@@ -1,82 +1,98 @@
 import numpy as np
 import tkinter as tk
-import sounddevice as sd
 import config
-import threading
+from collections import deque # kind of list but more eficient for some methods (using for circular buffer)
 
 def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
         ext_in_dev, ext_in_ch, out_to_sys_dev, out_to_sys_ch, in_from_sys_dev, in_from_sys_ch,
-        fs, bit_depth, block_size): 
-    
-    global audio_stream_bypass
+        fs, bit_depth, block_size):
 
     # Create DSP window
     dsp_window = tk.Toplevel(root)
     dsp_window.title("Digital Signal Processor")
     dsp_window.geometry("800x600")
 
-     # Callback function for bypass
-    def audio_callback(indata, outdata, frames, time, status):
-        # Pass-through signal from input to output
-        outdata[:] = indata
+    # Parameters for the circular buffer
+    ring_buffer_size = 20  # Number of blocks to keep
+    block_len = block_size.get()
+    ring_buffer = deque(maxlen=ring_buffer_size)
+    last_processed_counter = -1
 
-    # Start the bypass stream
+
+    # Pre-fill with silent blocks
+    for _ in range(ring_buffer_size):
+        ring_buffer.append(np.zeros(block_len, dtype=np.float32))
+    
+    # DSP processing: Bypass external input to output buffer
     def start_bypass():
-        # stop_bypass_stream()
-        global audio_stream_bypass
+        if ext_in_ch.get() < 1 or out_to_sys_ch.get() < 1:
+            status_label.config(text="Please select valid input/output channels", fg="red")
+            return
+        
+        # Reschedule using correct timing
+        interval_ms = int(block_size.get() / fs.get() * 1000)
 
-        try:
-            if ext_in_dev.get() < 0 or ext_in_ch.get() < 1 or out_to_sys_dev.get() < 0 or out_to_sys_ch.get() < 1:
-                status_label.config(text="Please select valid input and output devices", fg="red")
-                return
+        def bypass_update():
+            nonlocal last_processed_counter
 
-            # Prepare shared buffer
-            buffer = np.zeros(block_size.get(), dtype='float32')
+            if not config.update_enabled:
+                return  # Skip update if global updates disabled
 
-            # Input stream
-            input_stream = sd.InputStream(
-                samplerate=fs.get(),
-                blocksize=block_size.get(),
-                dtype='float32',
-                device=ext_in_dev.get(),
-                channels=sd.query_devices(ext_in_dev.get())['max_input_channels'], ############################
-            )
+            try:
+                with config.buffer_lock:
+                    # Check for invalid conditions
+                    if (
+                        config.buffer_data is None or
+                        config.buffer_output is None or
+                        ext_in_ch.get() < 1 or
+                        out_to_sys_ch.get() < 1 or
+                        config.buffer_data.shape[0] != block_len
+                    ):
+                        print("[DEBUG] buffer_data:", config.buffer_data.shape) ##########################################
+                        print("[DEBUG] buffer_output:", config.buffer_output.shape)
 
-            # Output stream
-            output_stream = sd.OutputStream(
-                samplerate=fs.get(),
-                blocksize=block_size.get(),
-                dtype='float32',
-                device=out_to_sys_dev.get(),
-                channels=sd.query_devices(out_to_sys_dev.get())['max_output_channels'], #################
-            )
-
-            # Real-time forwarding loop
-            def audio_loop():
-                input_stream.start()
-                output_stream.start()
-
-                while audio_stream_bypass is not None:
-                    indata, _ = input_stream.read(block_size.get())
-                    buffer[:] = indata[:, ext_in_ch.get() - 1]  # Select desired input channel
-                    out_block = np.zeros((block_size.get(), output_stream.channels), dtype='float32')
-                    out_block[:, out_to_sys_ch.get() - 1] = buffer
-                    output_stream.write(out_block)
-
-            audio_stream_bypass = threading.Thread(target=audio_loop, daemon=True)
-            audio_stream_bypass.start()
-
-            status_label.config(text="Bypass stream running (single channel)", fg="green")
-
-        except Exception as e:
-            status_label.config(text=f"Error: {e}", fg="red")
-            print(f"[ERROR] Could not start bypass stream: {e}")
+                        # Generate a hash or ID to detect if buffer_data changed
+                        buffer_id = id(config.buffer_data)
+                        if buffer_id == last_processed_counter:
+                            return  # same buffer, skip
+                        last_processed_counter = buffer_id
 
 
-    # Bypass button
+                        return
+                    
+                    print("[DEBUG] buffer_data shape:", config.buffer_data.shape)############################################
+
+
+                    # Extract selected mono input channel
+                    signal = config.buffer_data[:, ext_in_ch.get() - 1]
+
+                    # Store new signal block in circular buffer
+                    ring_buffer.append(signal.copy())
+
+                    # Get the latest valid block from the ring buffer
+                    latest = ring_buffer[-1]
+
+                    # Clear all channels in the output buffer
+                    config.buffer_output[:] = 0
+
+                    # Write the latest block to the selected output channel
+                    config.buffer_output[:, out_to_sys_ch.get() - 1] = latest
+
+            except Exception as e:
+                print(f"[ERROR] DSP bypass failed: {e}")
+
+            dsp_window.after(interval_ms, bypass_update)
+
+            print("[DEBUG] Wrote block to output buffer") ###################################################
+
+
+        status_label.config(text="Bypass ACTIVE", fg="green")
+        dsp_window.after(0, bypass_update)
+
+    # UI: Bypass control
     bypass_btn = tk.Button(dsp_window, text="Start Bypass", font=("Arial", 16), command=start_bypass)
     bypass_btn.pack(pady=40)
 
-    # Status label
+    # UI: Status label
     status_label = tk.Label(dsp_window, text="", fg="green")
     status_label.pack(pady=10)
