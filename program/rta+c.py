@@ -186,7 +186,7 @@ def auto_config():
     out_to_sys_ch.set(1) # 1
     in_from_sys_dev.set(4) # 4
     in_from_sys_ch.set(2) # 2
-    block_size.set(65536) # 1024 ################
+    block_size.set(16384) # 1024 ### 65536 ### 16384
     fs.set(44100) # 44100
 
     print("[INFO] Auto Config applied.")
