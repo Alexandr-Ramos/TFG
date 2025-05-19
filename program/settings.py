@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import sounddevice as sd
+import time
 import config  # Import shared config variables
 
 # Settings Window
@@ -28,7 +29,6 @@ def open_settings(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
         pages[page_name].pack(fill="both", expand=True)
 
     #### PAGE 1: Device ####
-
     device_page = tk.Frame(content, bg="white")
     pages["Device"] = device_page
 
@@ -302,3 +302,10 @@ def open_settings(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
     # Show first page by default
     show_page("Device")
+
+    # Close Window
+    def on_close_set():
+        time.sleep(0.5)
+        settings_window.destroy()
+    
+    settings_window.protocol("WM_DELETE_WINDOW", on_close_set)

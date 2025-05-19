@@ -1,6 +1,7 @@
 import numpy as np
 import tkinter as tk
 from scipy import signal
+import time
 import config
 from collections import deque # kind of list but more eficient for some methods (using for circular buffer)
 
@@ -11,7 +12,7 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
     # Create DSP window
     dsp_window = tk.Toplevel(root)
     dsp_window.title("Digital Signal Processor")
-    dsp_window.geometry("800x600")
+    dsp_window.geometry("1700x500")
 
     # Parameters for the circular buffer
     ring_buffer_size = 20  # Number of blocks to keep
@@ -35,13 +36,16 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
         2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000
     ])
     current_gain = np.zeros(31, dtype=np.float32) # Default gain values for each band
-    current_gain_label = [] # Needed to show on the feedback greed
+
+    # config.gain_value --> gain values that comes form analysis
+    # analysis_gain --> values used in dsp
     if config.gain_values is None:
-        analysis_gain_label = [0.0] * len(center_freqs)
+        analysis_gain = [0.0] * len(center_freqs)
     else:
-        analysis_gain_label = config.gain_values
-        if len(analysis_gain_label) < len(center_freqs):
-            analysis_gain_label += [0.0] * (len(center_freqs) - len(analysis_gain_label))
+        analysis_gain = [-v for v in config.gain_values]
+        if len(analysis_gain) < len(center_freqs):
+            analysis_gain += [0.0] * (len(center_freqs) - len(analysis_gain))
+
     manual_gain = [tk.StringVar(value="0.00") for _ in center_freqs] # We will use this to manually edit gains.
 
     # Frame for EQ interface
@@ -57,20 +61,29 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
     for col in range(len(center_freqs)):
         lbl = tk.Label(eq_panel, text=f"{current_gain[col]:.1f}", width=6)
         lbl.grid(row=1, column=col)
-        current_gain_label.append(lbl)
 
-    # # Row 2: Analysis gain (from config)
+    # Row 2: Analysis gain (from config)
     for col in range(len(center_freqs)):
-        val = analysis_gain_label[col]
+        val = analysis_gain[col]
         lbl = tk.Label(eq_panel, text=f"{val:.1f}", fg="blue", width=6)
         lbl.grid(row=2, column=col)
-        analysis_gain_label.append(lbl)
 
     # Row 3: Manual input fields
     for col, var in enumerate(manual_gain):
         entry = tk.Entry(eq_panel, textvariable=var, width=6)
         entry.grid(row=3, column=col)
 
+    # Legend frame
+    legend_frame = tk.Frame(dsp_window)
+    legend_frame.pack(pady=(10, 2))
+
+    # Legend items
+    tk.Label(legend_frame, text="Current Values", fg="black", font=("Arial", 12)).pack(anchor="w")
+    tk.Label(legend_frame, text="Analysis value with inverted sign", fg="blue", font=("Arial", 12)).pack(anchor="w")
+    tk.Label(legend_frame, text="Manual value", fg="black", font=("Arial", 12)).pack(anchor="w")
+
+    # Footnote
+    tk.Label(dsp_window, text="All values exceeding ±20 dB will be limited to ±20 dB.", font=("Arial", 11, "italic")).pack(pady=(0, 10))
 
     #### Bypass external input to output buffer ####
     def start_bypass():
@@ -83,16 +96,18 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
         def bypass_update():
             nonlocal bypass_active, last_processed_counter
-            
+
+            if config.update_enabled is False:
+                return
+
             if not bypass_active:
-                print("Bypass unabled")
+                # print("Bypass unabled")
                 dsp_window.after(interval_ms, bypass_update)
                 return
 
 
             if not config.update_enabled:
-
-                print("Update Unabled")
+                # print("Update Unabled")
                 return  # Skip update if global updates disabled
 
             try:
@@ -105,9 +120,6 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                         out_to_sys_ch.get() < 1 or
                         config.buffer_data.shape[0] != block_len
                     ):
-                        print("[DEBUG] buffer_data:", config.buffer_data.shape) ##########################################
-                        print("[DEBUG] buffer_output:", config.buffer_output.shape)
-
                         # Generate a hash or ID to detect if buffer_data changed
                         buffer_id = id(config.buffer_data)
                         if buffer_id == last_processed_counter:
@@ -117,9 +129,6 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
                         return
                     
-                    print("[DEBUG] buffer_data shape:", config.buffer_data.shape)############################################
-
-
                     # Extract selected mono input channel
                     signal = config.buffer_data[:, ext_in_ch.get() - 1]
                     dsp_window.after(interval_ms, bypass_update) # Once I have data, countdown for next block.
@@ -139,12 +148,10 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             except Exception as e:
                 print(f"[ERROR] DSP bypass failed: {e}")
 
-            print("[DEBUG] Wrote block to output buffer") ###################################################
-
-
         status_label.config(text="Bypass ACTIVE", fg="green")
         dsp_window.after(0, bypass_update)
 
+    #### EQ ####
     def start_EQ():
         # Design bandpass filters for each 1/3 octave band
         sos_filters = []
@@ -165,6 +172,9 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
         def update_EQ():
             nonlocal eq_active, last_processed_counter, current_gain
+
+            if config.update_enabled is False:
+                return
 
             if not eq_active:
                 return
@@ -196,39 +206,51 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                 # Clear output buffer and write to selected output channel
                 config.buffer_output[:] = 0
                 config.buffer_output[:, out_to_sys_ch.get() - 1] = acc
-
-                print("EQ active") ####################################
             
                 status_label.config(text="EQ ACTIVE", fg="green")
             
-        update_EQ()
+        dsp_window.after(0, update_EQ)
 
     #### Buttons ####
     def apply_analysis_values():
-        for i in range(len(center_freqs)):
-            manual_gain[i].set(f"{config.gain[i]:.2f}")
+            nonlocal analysis_gain, current_gain
+            current_gain = analysis_gain
+            current_gain = np.clip(current_gain, -20, 20) #Values that exceed, are set to +-20
+            for col in range(len(center_freqs)):
+                val = current_gain[col]
+                lbl = tk.Label(eq_panel, text=f"{val:.1f}", width=6)
+                lbl.grid(row=1, column=col)
 
     def apply_manual_values():
+        nonlocal current_gain, manual_gain
+        current_gain = np.zeros(len(center_freqs)) # Erase
         for i, var in enumerate(manual_gain):
             try:
                 val = float(var.get())
             except ValueError:
                 val = 0.0
+                print("[ERROR]: Introduced value is not valid")
             current_gain[i] = val
-            current_gain[i].config(text=f"{val:.2f}")
+        current_gain = np.clip(current_gain, -20, 20) # Values that exceed, are set to +-20
+
+        for col in range(len(center_freqs)):
+            val = current_gain[col]
+            lbl = tk.Label(eq_panel, text=f"{val:.1f}", width=6)
+            lbl.grid(row=1, column=col)
 
     def refresh_analysis_values():
+        nonlocal analysis_gain
         if config.gain_values is None:
-            data = [0.0] * len(center_freqs)
+            analysis_gain = [0.0] * len(center_freqs)
         else:
-            data = list(config.gain_values)
-            if len(data) < len(center_freqs):
-                data += [0.0] * (len(center_freqs) - len(data))
-
-        for i in range(len(center_freqs)):
-            analysis_gain_label[i].config(text=f"{data[i]:.1f}")
-
-
+            analysis_gain = [-v for v in config.gain_values]
+            if len(analysis_gain) < len(center_freqs):
+                analysis_gain += [0.0] * (len(center_freqs) - len(analysis_gain))
+            
+        for col in range(len(center_freqs)):
+            val = analysis_gain[col]
+            lbl = tk.Label(eq_panel, text=f"{val:.1f}", fg="blue", width=6)
+            lbl.grid(row=2, column=col)
 
     def toggle_mode():
         nonlocal bypass_active, eq_active
@@ -280,3 +302,19 @@ def open_dsp(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
     # UI: Status label
     status_label = tk.Label(top_frame, text="", fg="green")
     status_label.pack(side="left", padx=10)
+
+    # Close Window
+    def on_close_dsp():
+        eq_active = False
+        bypass_active = False
+
+        # Clear output buffer one time
+        with config.buffer_lock:
+            if config.buffer_output is not None:
+                config.buffer_output[:] = np.zeros_like(config.buffer_output)
+        status_label.config(text="Current mode: Stopped", fg="red")
+        
+        time.sleep(0.5)
+        dsp_window.destroy()
+    
+    dsp_window.protocol("WM_DELETE_WINDOW", on_close_dsp)

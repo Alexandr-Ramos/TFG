@@ -169,13 +169,6 @@ correction_button = tk.Button(main_button_frame, text="Correction (DSP)", font=(
     )
 correction_button.grid(row=0, column=2, padx=10)
 
-def on_root_close():
-    config.update_enabled=False # Prevent all periodic updates
-    stop_global_stream()  # Ensure the stream is stopped
-    root.destroy()        # Close the GUI safely
-
-root.protocol("WM_DELETE_WINDOW", on_root_close)
-
 update_led()  # Start monitoring buffer updates
 
 # Auto Config: Heare you can set a default config to apply in just one click
@@ -194,6 +187,16 @@ def auto_config():
 # Botó visual
 btn_auto_config = tk.Button(root, text="Auto Config", command=auto_config)
 btn_auto_config.pack(pady=10)
+
+# Close all
+def on_close_all():
+    config.update_enabled = False # Prevent all periodic updates
+    stop_global_stream()  # Ensure the stream is stopped
+    
+    time.sleep(0.5)
+    root.destroy()
+
+root.protocol("WM_DELETE_WINDOW", on_close_all)
 
 # Start all:
 root.mainloop()

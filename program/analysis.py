@@ -11,9 +11,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # from config import buffer_data, buffer_lock, delay_buffer
 import config
 
-
-block_size_ms = 100  # 100 ms
-
+block_size_ms = 100  # 100 ms for FT
 
 def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
         ext_in_dev, ext_in_ch, out_to_sys_dev, out_to_sys_ch, in_from_sys_dev, in_from_sys_ch,
@@ -39,10 +37,43 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
     analysis_window = tk.Toplevel(root)
     analysis_window.title("Analysis")
-    analysis_window.geometry("800x600")
+    analysis_window.geometry("900x1200")
 
     # Stop stream when close window
     def on_closing():
+        try:
+ 
+            # Destroy and unload current pages
+            config.update_enabled = False
+            time.sleep(0.3) #Give time for end whatever was executing
+            
+            # Close all matplotlib figures to prevent memory leak
+            for fig in plt.get_fignums():
+                plt.close(fig)
+            print("[INFO] Killed previous plots")
+
+            for name, frame in pages.items():
+                frame.pack_forget()
+                frame.destroy()  # Destroy the frame's widgets
+            pages.clear()
+            loaded_pages.clear()
+            print("[INFO] Cleared previous pages")
+            
+            # Destroy any active page
+            for name in list(pages.keys()):
+                pages[name].destroy()  # remove from memory
+                del pages[name]
+                del loaded_pages[name]
+            print("[INFO] Deleted previous pages")
+
+            time.sleep(0.3) #Give more time
+
+            config.update_enabled = True
+        
+        except Exception as e:
+            print(f"[ERROR] Could not stop: {e}")
+
+        time.sleep(0.5)
         analysis_window.destroy()
 
     analysis_window.protocol("WM_DELETE_WINDOW", on_closing)
@@ -382,10 +413,10 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             band31_page = tk.Frame(content, bg="white")
             pages["31 Bands"] = band31_page
 
-            label_31band = tk.Label(band31_page, text="31 Bands", font=("Arial", 14))
+            label_31band = tk.Label(band31_page, text="31 Bands RTA", font=("Arial", 14))
             label_31band.pack(pady=10)
 
-            tk.Label(band31_page, text="31-Band RTA", font=("Arial", 14), bg="white").pack(pady=10)
+            # tk.Label(band31_page, text="31-Band RTA", font=("Arial", 14), bg="white").pack(pady=10)
 
             # Frequencies for 1/3 octave bands --> IEC 61260-3
             center_freqs = np.array([ # Change to logspace################################ --> Redaction
@@ -652,14 +683,14 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
                     apply_msg.config(text="NOT saved", font=("Arial", 12))
                 else:
                     config.gain_values = dif_level_db
-                    print(f"[INFO] Gain saved: {config.gain_values}")
+                    print(f"[INFO] Gain saved") # : {config.gain_values}")
                     apply_msg.config(text="Saved", font=("Arial", 12))
 
             btn_pause = tk.Button(button_frame, text="Pause", command=toggle_stream, font=("Arial", 12))
             btn_pause.pack(side="left", pady=10)
 
-            btn_pause = tk.Button(button_frame, text="Save Gain", command=save_gain, font=("Arial", 12))
-            btn_pause.pack(side="right", pady=10)
+            btn_save = tk.Button(button_frame, text="Save Gain", command=save_gain, font=("Arial", 12))
+            btn_save.pack(side="right", pady=10)
 
 
     #### PAGE 3: Delay ####
