@@ -416,10 +416,8 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
             label_31band = tk.Label(band31_page, text="31 Bands RTA", font=("Arial", 14))
             label_31band.pack(pady=10)
 
-            # tk.Label(band31_page, text="31-Band RTA", font=("Arial", 14), bg="white").pack(pady=10)
-
             # Frequencies for 1/3 octave bands --> IEC 61260-3
-            center_freqs = np.array([ # Change to logspace################################ --> Redaction
+            center_freqs = np.array([
                 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160,
                 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600,
                 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000
