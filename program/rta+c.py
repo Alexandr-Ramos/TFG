@@ -90,7 +90,7 @@ def start_global_stream():
 
         output_stream.start()
         config.audio_stream_out_to_sys = output_stream
-
+        
         print("[INFO] Global stream started.")
     except Exception as e:
         print(f"[ERROR] It is not possible to start global Stream: {e}")
