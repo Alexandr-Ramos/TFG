@@ -6,6 +6,15 @@ El nom d’aquest apartat s'ha de triar en funció del treball que es porti a te
 
 About user friendly graphic interface..................................
 
+This tools can be differenciated in two very important groups, taht also will be two diferent windows of the program: REVIOSARRRRRRRRRRRRRRRRRRRRRRRR
+
+\begin{itemize}
+	\item \textbf{Analysis Window} that will recieve sound from external input, and sound that comes from System (Input form System).
+	\item \textbf{DSP Window} that will recieve sound form external input, data about how it have to process, and send processed signal to Output (Output to System)
+\end{itemize}
+
+........................................................
+
 \section{Settings page}
 
 About parameters that can be set on this page, an why we need them.
@@ -27,13 +36,22 @@ How is adquired data from soundcard and how I move this thata inside the program
 			
 			\node (q_ext) {External Input};
 			\node (null_ext) [right=of q_ext] {};
+			\node (q_ana) [draw, rectangle, minimum size=1cm, below right=of null_ext]{Analysis Window};
+			\node (q_dsp) [draw, rectangle, minimum size=1cm, above right=of null_ext]{DSP Window};
+			\node (q_out) [right=of q_dsp, xshift=2cm]{Output to System};
+			\node (q_inp) [right=of q_ana, xshift=2cm]{Input form System};
+			
 			
 			%\node (q_delay) [draw, rectangle, minimum size=1cm, right=of null_init] {Delay Buffer};
 			%\node (q_ext) [draw, rectangle, minimum size=1cm, above right=of q_delay, xshift=2cm] {Filtering and RMS Calculation of External Input};
 			%\node (q_in_sys) [draw, rectangle, minimum size=1cm, below right=of q_delay, xshift=2cm] {Filtering and RMS Calculation of Input from System};
 			%\node (q_diff) [draw, rectangle, minimum size=1cm, right=of q_delay, xshift=4cm] {Difference calculation};	
 			
-			%\draw[blue, very thick, ->] (q_init) edge node {2 channels} (q_delay);
+			\draw[blue, very thick, ->] (q_ext) edge node {} (q_ana);
+			\draw[blue, very thick, ->] (q_ext) edge node {} (q_dsp);
+			\draw[blue, very thick, ->] (q_dsp) edge node {} (q_out);
+			\draw[blue, very thick, ->] (q_inp) edge node {} (q_ana);
+			\draw[green, dotted, very thick, ->] (q_ana) edge [bend right=10] node {Data} (q_dsp);
 			%\draw[blue, dotted, very thick, ->] (q_delay) edge[bend right=10] node {1 channel} (q_ext);
 			%\draw[blue, dotted, very thick, ->] (q_delay) edge[bend right=10] node {1 channel} (q_in_sys);
 			%\draw[green, very thick, ->] (q_ext) edge[bend right=10] node {Analysis Data} (q_diff);
@@ -42,7 +60,7 @@ How is adquired data from soundcard and how I move this thata inside the program
 		\end{tikzpicture}
 		\vspace{-2mm}
 	\end{center}
-	\caption{XXXXXXXXXXXXXXXXXXXXXXX}
+	\caption{General signal path}
 \end{figure}
 
 \section{Acoustics analysis}
