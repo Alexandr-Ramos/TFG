@@ -1,6 +1,6 @@
 \chapter{Development of the chosen solutions}
 
-El nom d’aquest apartat s'ha de triar en funció del treball que es porti a terme. Aquest apartat pot constar de diversos apartats i subapartats, depenent del criteri de l‘autor o autora i de les consideracions de la tesi que es desenvolupa.
+Once we have defined what we want to do in the previous chapter, \textbf{Methodology, Considerations, and Decisions on Alternative Solutions}, it is time to get to work.
 
 \section{Graphic interface}
 
@@ -15,13 +15,9 @@ This tools can be differenciated in two very important groups, taht also will be
 
 ........................................................
 
-\section{Settings page}
-
-About parameters that can be set on this page, an why we need them.
-
 \section{Signal Path}
-	
-How is adquired data from soundcard and how I move this thata inside the program
+
+Sounddevice library \cite{sounddevice}
 
 ------------------------- Arquitectura general programa general
 
@@ -29,7 +25,7 @@ How is adquired data from soundcard and how I move this thata inside the program
 \begin{figure}[H]
 	\begin{center}
 		\vspace{-2mm}
-		\tikzsetnextfilename{RTA_page_schem}
+		\tikzsetnextfilename{general_path}
 		\begin{tikzpicture}[node distance=30mm,on grid,auto, scale=1, bend angle=45]
 			
 			every node/.style={font=\small};
@@ -63,6 +59,44 @@ How is adquired data from soundcard and how I move this thata inside the program
 	\caption{General signal path}
 \end{figure}
 
+\section{Settings page}
+
+In order to be flexible with hardware, we need a settings window where we can tell the program which sound card, which channel, and which parameters we want to use. These parameters will also affect the resolution and fidelity of the analysis and processing, according to the sound card’s capabilities.
+
+I will splitt setting window in tow pages:
+ \begin{itemize}
+ 	\item \textbf{Device Settings:} Where we can define which sound card and which channels we want to use.
+ 	\item \textbf{Audio Settings:} Where we can define which audio parameters we want to use.
+ \end{itemize}
+
+\subsection{Device Settings [DONE]}
+
+I will use sounddevice methods to identify which sound cards and channels are available, and filter them into inputs and outputs. Then, using a questionnaire-style interface, I will let the user select which sound card and which channel they want for each required signal using a dropdown menu.
+
+At the bottom of the page, there will be a "Confirm" button that performs some basic checks, such as verifying that the "external input" and the "input from system" are not the same input channel. Then, it will display a green message if the settings are applied successfully, or a red one if something goes wrong. Finally, it will update the labels on the root window to indicate which channels are currently selected.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/DevSet.png}
+	\caption{Device Settings page showing a red message because the user selected an invalid configuration.}
+	\label{fig:Device Settings}
+\end{figure}
+
+\subsection{Audio Settings}
+
+--------------------------------------
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/AudSet.png}
+	\caption{Audio Settings page showing a green message.}
+	\label{fig:Audio Settings}
+\end{figure}
+
+
+
 \section{Acoustics analysis}
 
 The acoustic analysis is devoloped with python librari LIBROSA\cite{librosa}
@@ -71,7 +105,7 @@ The acoustic analysis is devoloped with python librari LIBROSA\cite{librosa}
 
 How implemented the spectogram
 
-\subsection{RTA}
+\subsection{RTA [DONE]}
 
 Usually, any form of analysis that is performed in real time can be considered \textbf{RTA} (\textit{Real-Time Analysis}). This includes a wide range of operations such as spectrum monitoring, transfer function measurements, phase and coherence analysis, and more—all happening as the signal flows. However, in my experience, in common usage, when someone refers to "RTA", they are often specifically referring to the classic 31-band graphical spectrum display. Also, the data collected on this page is especially important because it will be used to set the correction parameters. For all of that, this page has been named \textbf{RTA}.
 
