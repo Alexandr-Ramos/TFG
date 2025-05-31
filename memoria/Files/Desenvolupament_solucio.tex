@@ -59,7 +59,7 @@ Sounddevice library \cite{sounddevice}
 	\caption{General signal path}
 \end{figure}
 
-\section{Settings page}
+\section{Settings page [DONE]}
 
 In order to be flexible with hardware, we need a settings window where we can tell the program which sound card, which channel, and which parameters we want to use. These parameters will also affect the resolution and fidelity of the analysis and processing, according to the sound card’s capabilities.
 
@@ -69,11 +69,11 @@ I will splitt setting window in tow pages:
  	\item \textbf{Audio Settings:} Where we can define which audio parameters we want to use.
  \end{itemize}
 
-\subsection{Device Settings [DONE]}
+\subsection{Device Settings}
 
 I will use sounddevice methods to identify which sound cards and channels are available, and filter them into inputs and outputs. Then, using a questionnaire-style interface, I will let the user select which sound card and which channel they want for each required signal using a dropdown menu.
 
-At the bottom of the page, there will be a "Confirm" button that performs some basic checks, such as verifying that the "external input" and the "input from system" are not the same input channel. Then, it will display a green message if the settings are applied successfully, or a red one if something goes wrong. Finally, it will update the labels on the root window to indicate which channels are currently selected.
+At the bottom of the page, there will be a "Confirm" button that performs some basic checks, such as verifying that the "external input" and the "input from system" are not the same input channel. Then, it will display a green message if the settings are applied successfully, or a red one if something goes wrong. Finally, it will update the values and labels on the root window to indicate which channels are currently selected.
 
 \begin{figure}[H]
 	\centering
@@ -85,7 +85,11 @@ At the bottom of the page, there will be a "Confirm" button that performs some b
 
 \subsection{Audio Settings}
 
---------------------------------------
+On this page, just like in the previous one, I will use a questionnaire-style interface with dropdown menus to define the Sample Rate, Bit Depth, and Block Size to be used.
+
+For the Sample Rate and Bit Depth, I will suggest the most common values — such as 44,100 Hz, 48,000 Hz, 96,000 Hz, and 192,000 Hz for the sample rate, and 16, 24, and 32 bits for bit depth. However, the user is free to enter any value. The same applies to the Block Size.
+
+At the bottom of the page, there is also a "Confirm" button, similar to the one in the "Device Settings" page. It performs basic checks, updates the selected values, and displays a message: green if everything is OK, orange in case of a warning (it applies the changes but alerts the user when a non-recommended or uncommon value is entered), and red if the Block Size is not a power of two — something required for the algorithms to work properly.
 
 \begin{figure}[H]
 	\centering
