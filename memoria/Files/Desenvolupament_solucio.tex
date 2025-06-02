@@ -15,12 +15,9 @@ This tools can be differenciated in two very important groups, taht also will be
 
 ........................................................
 
-\section{Signal Path}
+\section{Signal Path [DONE]}
 
-Sounddevice library \cite{sounddevice}
-
-------------------------- Arquitectura general programa general
-
+To perform any kind of analysis or signal processing, the first thing we need is data—more specifically, signal data captured from the sound card. This data is sent to different modules so that each one can carry out its specific task. Additionally, in the case of the correction module, it is necessary to send output data back to the sound card (the corrected signal). Additionally, there will be non-signal data containing the results of the analysis, which will be sent to the DSP (\textit{Digital Signal Processor}) or the correction window.
 
 \begin{figure}[H]
 	\begin{center}
@@ -56,7 +53,47 @@ Sounddevice library \cite{sounddevice}
 		\end{tikzpicture}
 		\vspace{-2mm}
 	\end{center}
-	\caption{General signal path}
+	\caption{Basic representation of the required signal path}
+\end{figure}
+
+To achieve real-time processing, we must manage a constant flow of data. For this purpose, I will use a stream-style data management approach, which consists of capturing small blocks of data, processing them, and continuously sending the results. To capture and send this stream to and from the sound card, the Sounddevice library \cite{sounddevice} will be used.
+
+To simplify things, the two required inputs—\textbf{External Input} and \textbf{Input from System}—will be handled using a single input stream, while the output—\textbf{Output to System}—will be managed through a separate, independent output stream. All streams will share the same parameters, such as bit depth, sample rate, and block size. However, the audio device and channel parameters will be independently set for each stream. In the case of the input stream, each input channel must also be configured separately.
+
+Once the streams are running and managed from the root window, we need to handle the data coming from the input streams and the data to be sent to the output stream. To achieve this, I will use one input buffer for both input channels and a separate output buffer. These buffers must be accessible to all tool modules in the program and will be locked whenever a module accesses them, in order to prevent simultaneous reads and writes.
+
+\begin{figure}[H]
+	\begin{center}
+		\vspace{-2mm}
+		\tikzsetnextfilename{stream_path}
+		\begin{tikzpicture}[node distance=30mm,on grid,auto, scale=1, bend angle=45]
+			
+			every node/.style={font=\small};
+			
+			\node (q_ext) {External Input};
+			%\node (null_ext) [right=of q_ext] {};
+			\node (q_in_st) [draw, rectangle, minimum size=1cm, right=of q_ext, yshift=-1cm, xshift=1cm]{Input Stream};
+			\node (q_inp) [left=of q_in_st, yshift=-1cm, xshift=-1cm]{Input form System};
+			\node (q_inp_bf) [draw, rectangle, minimum size=1cm, right=of q_in_st]{Input Buffer};
+			\node (q_mod) [draw, rectangle, minimum size=1cm, below right=of q_inp_bf]{Tools Modules};
+			\node (q_out_bf) [draw, rectangle, minimum size=1cm, below left=of q_mod]{Output Buffer};
+			\node (q_out_st) [draw, rectangle, minimum size=1cm, left=of q_out_bf]{Output Stream};
+			\node (q_out) [left=of q_out_st, xshift=-1cm]{Output to System};
+						
+			\draw[blue, very thick, ->] (q_ext) edge node {} (q_in_st);
+			\draw[blue, very thick, ->] (q_inp) edge node {} (q_in_st);
+			\draw[blue, very thick, ->] (q_in_st) edge node {} (q_inp_bf);
+			\draw[green, very thick, ->] (q_inp_bf) edge [bend left=30] node {} (q_mod);
+			\draw[green, very thick, ->] (q_inp_bf) edge [bend left=50] node {to multiple modules} (q_mod);
+			\draw[green, very thick, ->] (q_mod) edge [bend left=40] node {from one module} (q_out_bf);
+			\draw[blue, very thick, ->] (q_out_bf) edge node {} (q_out_st);
+			\draw[blue, very thick, ->] (q_out_st) edge node {} (q_out);
+			
+			
+		\end{tikzpicture}
+		\vspace{-2mm}
+	\end{center}
+	\caption{Stream management}
 \end{figure}
 
 \section{Settings page [DONE]}
