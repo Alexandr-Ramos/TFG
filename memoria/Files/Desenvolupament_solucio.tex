@@ -4,16 +4,70 @@ Once we have defined what we want to do in the previous chapter, \textbf{Methodo
 
 \section{Graphic interface}
 
-About user friendly graphic interface..................................
+One important point is to provide a GUI (\textit{Graphical User Interface}) that is intuitive and easy to use. Since Python is being used for development, the chosen solution is to use the Tkinter\cite{Tkinter} library for the window and page system, and the Matplotlib\cite{Matplotlib} library to display graphical results of certain analysis algorithms.
 
-This tools can be differenciated in two very important groups, taht also will be two diferent windows of the program: REVIOSARRRRRRRRRRRRRRRRRRRRRRRR
+As Tkinter works, all actions that need to be triggered or modified through user interaction must be handled inside a function. Therefore, the way this library operates is by calling predefined functions in response to any user interaction.
+
+First, we need to define the graphical architecture, where each module will be integrated into the graphical user interface. Since the program functions as a set of tools, we must define where each tool will be placed within the interface.
+
+These tools can be divided into two important groups, which will also correspond to two separate windows accessible from the root window:
 
 \begin{itemize}
-	\item \textbf{Analysis Window} that will recieve sound from external input, and sound that comes from System (Input form System).
-	\item \textbf{DSP Window} that will recieve sound form external input, data about how it have to process, and send processed signal to Output (Output to System)
+	\item \textbf{Analysis Window:} This window will contain the tools that need to receive sound from both the external input and the system input (Input from System). It will then display the results of the analysis performed on those signals.
+	\item \textbf{DSP Window:} This window, also called the \textbf{"Correction Window"}, contains the tools that receive sound from the external input, as well as data indicating how the signal should be processed, and then send the processed signal to the output (Output to System).
 \end{itemize}
 
-........................................................
+Each of these two windows will be divided into pages, with each page containing a specific tool. Additionally, a settings window is needed, where the user can set global parameters. With all of this, we arrive at the following GUI scheme:
+
+\begin{figure}[H]
+	\begin{center}
+		\vspace{-2mm}
+		\tikzsetnextfilename{GUI_path}
+		\begin{tikzpicture}[node distance=30mm,on grid,auto, scale=1, bend angle=45]
+			
+			every node/.style={font=\small};
+			
+			\node (q_root) [draw, rectangle, minimum size=1cm] {ROOT WINDOW};
+			%\node (null_ext) [right=of q_ext] {};
+			\node (q_ana) [draw, rectangle, minimum size=1cm, xshift=-3cm, below left=of q_root]{ANALYSIS WINDOW};
+			\node (q_dsp) [draw, rectangle, minimum size=1cm, xshift=3cm, below right=of q_root]{DSP WINDOW};
+			\node (q_set) [draw, rectangle, minimum size=1cm, yshift=1cm, below=of q_root]{SETTINGS WINDOW};
+			\node (q_dev) [draw, rectangle, minimum size=1cm, xshift=2cm, yshift=1cm, below=of q_set]{Device Settings Page};
+			\node (q_aud) [draw, rectangle, minimum size=1cm, xshift=-2cm, yshift=1cm, below=of q_set]{Audio Settings Page};
+			\node (q_eq) [draw, rectangle, minimum size=1cm, yshift=-1cm, below=of q_dsp]{EQ Page};
+			\node (q_ft) [draw, rectangle, minimum size=1cm, yshift=-3cm, below left=of q_ana]{FT Page};
+			\node (q_31) [draw, rectangle, minimum size=1cm, right=of q_ft]{31 Bands Page};
+			\node (q_del) [draw, rectangle, minimum size=1cm, right=of q_31]{Delay Page};
+			
+			\draw[blue, very thick, ->] (q_root) edge node {} (q_ana);
+			\draw[blue, very thick, ->] (q_root) edge node {} (q_set);
+			\draw[blue, very thick, ->] (q_root) edge node {} (q_dsp);
+			\draw[green, very thick, ->] (q_dsp) edge node {} (q_eq);
+			\draw[green, very thick, ->] (q_set) edge node {} (q_aud);
+			\draw[green, very thick, ->] (q_set) edge node {} (q_dev);
+			\draw[green, very thick, ->] (q_ana) edge [bend right=10] node {} (q_ft);
+			\draw[green, very thick, ->] (q_ana) edge [bend right=12.5] node {} (q_31);
+			\draw[green, very thick, ->] (q_ana) edge [bend right=15] node {} (q_del);
+
+			
+		\end{tikzpicture}
+		\vspace{-2mm}
+	\end{center}
+	\caption{GUI window schematic}
+\end{figure}
+
+......................................................................................
+
+Per tal de facilitar la programació, es distribueix en diferents fitxers.
+
+Entre finestre i pàgines, es dificil fer que es vegin les variables entre elles. S'ha d'utilitzar variables defibnides per tkinter, variables declarades com a globals o "nonlocla", i variables definides en config.
+
+Repetició d'estructura de variables.
+
+Cada finestra es l'encarregada d'executar les funcions necessaries per a cada tool, i les execucions repetitives.
+
+Cada pàgina s'ha de tancat er si mateixa amb una funció.
+.....................................................................................
 
 \section{Signal Path [DONE]}
 
