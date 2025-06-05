@@ -56,15 +56,26 @@ Each of these two windows will be divided into pages, with each page containing 
 	\caption{GUI window schematic}
 \end{figure}
 
-......................................................................................
+To make coding a bit easier, I will take advantage of the different pages to split the code across multiple Python files. In total, there are five files:
 
-Per tal de facilitar la programació, es distribueix en diferents fitxers.
+\begin{itemize}
+	\item \textbf{rta+c.py:} This is the root file that contains all initial instructions and the root window. It is the file that must be executed to start the program. Its name stands for \textbf{Real Time Analysis plus Correction}, which is also the name of the program.
+	\item \textbf{settings.py:} This file contains the settings window and its associated pages.
+	\item \textbf{dsp.py:} This file contains the DSP (correction) window.
+	\item \textbf{analysis.py:} This file contains the analysis window and all its pages.
+	\item \textbf{config.py:} This file declares some important variables that must be accessible from anywhere in the program. It does not contain any GUI-related elements.
+\end{itemize}
+
+Since the GUI layer is responsible for executing most of the program’s modules, each window’s file also contains all the necessary functions for analysis, processing, and plotting. In addition, all pages follow, as much as possible, the same structure in order to maintain the program’s logic and readability. This structure is based on three parts:
+
+\begin{enumerate}
+	\item \textbf{Initialize:} This section initializes the objects needed, sets up the plots with empty data, and defines the labels that will be displayed on the page.
+	\item \textbf{Update:} A function that contains the analysis algorithms, draws data on the plots, or runs DSP algorithms. This update function is called in every iteration of the algorithm loop using Tkinter methods.
+	\item \textbf{Control:} This final part contains the control parameters, flags, and buttons that affect the update function.
+\end{enumerate}
+------------------------------------------------------------------------
 
 Entre finestre i pàgines, es dificil fer que es vegin les variables entre elles. S'ha d'utilitzar variables defibnides per tkinter, variables declarades com a globals o "nonlocla", i variables definides en config.
-
-Repetició d'estructura de variables.
-
-Cada finestra es l'encarregada d'executar les funcions necessaries per a cada tool, i les execucions repetitives.
 
 Cada pàgina s'ha de tancat er si mateixa amb una funció.
 .....................................................................................
