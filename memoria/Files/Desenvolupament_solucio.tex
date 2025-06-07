@@ -2,7 +2,7 @@
 
 Once we have defined what we want to do in the previous chapter, \textbf{Methodology, Considerations, and Decisions on Alternative Solutions}, it is time to get to work.
 
-\section{Graphic interface}
+\section{Graphic interface [DONE]}
 
 One important point is to provide a GUI (\textit{Graphical User Interface}) that is intuitive and easy to use. Since Python is being used for development, the chosen solution is to use the Tkinter\cite{Tkinter} library for the window and page system, and the Matplotlib\cite{Matplotlib} library to display graphical results of certain analysis algorithms.
 
@@ -73,12 +73,29 @@ Since the GUI layer is responsible for executing most of the program’s modules
 	\item \textbf{Update:} A function that contains the analysis algorithms, draws data on the plots, or runs DSP algorithms. This update function is called in every iteration of the algorithm loop using Tkinter methods.
 	\item \textbf{Control:} This final part contains the control parameters, flags, and buttons that affect the update function.
 \end{enumerate}
-------------------------------------------------------------------------
 
-Entre finestre i pàgines, es dificil fer que es vegin les variables entre elles. S'ha d'utilitzar variables defibnides per tkinter, variables declarades com a globals o "nonlocla", i variables definides en config.
+One very important aspect of using Tkinter is object management. By default, common Python classes may not work properly under certain GUI rendering conditions. To avoid this, when an object needs to be accessible from any page of the GUI, I use three different solutions: use of \textit{config.py} as a shared configuration module containing predefined objects, which can be accessed from anywhere by importing this file; use of \textit{global} and \textit{nonlocal} objects inside the same window; and use of Tkinter classes such as \textit{tkinter.IntVar}.
 
-Cada pàgina s'ha de tancat er si mateixa amb una funció.
-.....................................................................................
+Finally, even though Tkinter offers a default way to close windows using the "X" symbol in the top left corner of the window, it does not always work properly—it may simply erase the window but not stop the process that is running from that window. To correctly close any window, it is important to define a close function. This function will be executed when the user clicks the "X" symbol, replacing the default function.
+
+\begin{minted}[label=\texttt{ipython}]{python3}
+	"""
+	In this case, this is the function that closes the root window and, as a consequence, the entire program.
+	"""
+	
+	# Close all
+	def on_close_all():
+		config.update_enabled = False # Prevent all periodic updates
+		stop_global_stream()  # Ensure the stream is stopped
+	
+		time.sleep(0.5)
+		root.destroy()
+	
+	root.protocol("WM_DELETE_WINDOW", on_close_all)
+	
+\end{minted}
+
+
 
 \section{Signal Path [DONE]}
 
