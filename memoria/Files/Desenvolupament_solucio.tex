@@ -74,7 +74,7 @@ Since the GUI layer is responsible for executing most of the program’s modules
 	\item \textbf{Control:} This final part contains the control parameters, flags, and buttons that affect the update function.
 \end{enumerate}
 
-One very important aspect of using Tkinter is object management. By default, common Python classes may not work properly under certain GUI rendering conditions. To avoid this, when an object needs to be accessible from any page of the GUI, I use three different solutions: use of \textit{config.py} as a shared configuration module containing predefined objects, which can be accessed from anywhere by importing this file; use of \textit{global} and \textit{nonlocal} objects inside the same window; and use of Tkinter classes such as \textit{tkinter.IntVar}.
+One very important aspect of using Tkinter is object management. By default, common Python classes may not work properly under certain GUI rendering conditions. To avoid this, when an object needs to be accessible from any page of the GUI, I use three different solutions: use of \textit{config.py} as a shared configuration module containing predefined objects, which can be accessed from anywhere by importing this file; use of \textit{global} and \textit{nonlocal} objects inside the same window; and use of Tkinter classes such as \texttt{tkinter.IntVar}.
 
 Finally, even though Tkinter offers a default way to close windows using the "X" symbol in the top left corner of the window, it does not always work properly—it may simply erase the window but not stop the process that is running from that window. To correctly close any window, it is important to define a close function. This function will be executed when the user clicks the "X" symbol, replacing the default function.
 
@@ -273,11 +273,21 @@ So, first, apart from initial definitions, drawings, and labels, we need solid p
 
 All signal and analysis algorithms are implemented using the \textbf{NumPy}\cite{numpy} and \textbf{SciPy}\cite{scipy_signal} libraries.
 
-\subsection{Spectrogram (FT)}
+\subsection{Spectrogram (FT) [DONE]}
 
 In studio or live sound situations, a spectrogram shows the energy of different frequencies over time using \textbf{FT} (\textit{Fourier Transform}), displayed in the audible range (between 20 Hz and 20 kHz), and sometimes slightly extended beyond.
 
-In my case, as a starting point, I’m using \textit{numpy.fft.rfft}, which is the \textbf{RFFT} (\textit{Real Fast Fourier Transform}) function from the NumPy library. It is an efficient variation of the \textbf{FFT} (\textit{Fast Fourier Transform}) designed for real-valued input signals.
+In my case, as a starting point, I’m using \texttt{numpy.fft.rfft}, which is the \textbf{RFFT} (\textit{Real Fast Fourier Transform}) function from the NumPy library. It is an efficient variation of the \textbf{FFT} (\textit{Fast Fourier Transform}) designed for real-valued input signals.
+
+In order to achieve good resolution, the processing block size on this page is independent of the one set in the settings pages. It uses at least 100 ms of data (more precisely, the next power-of-two number of samples equivalent to 100 ms). This provides a minimum frequency resolution of 10 Hz.
+
+\begin{figure}[H]
+	\centering
+	\caption{Frequency Resolution as a Function of Time Window}
+	\[
+	\Delta f = \frac{1}{T}
+	\]
+\end{figure}
 
 But before starting the calculations, we first need to prepare the input data through two processes.
 
@@ -303,15 +313,50 @@ First, we have to delay the \textit{External Input} signal to match it with the 
 
 Secondly, I apply a windowing process to the acquired data in order to obtain more pleasant and understandable results to display. It is true that this kind of process slightly alters the final results, but in this case, it can help to better identify peaks that stand out—indicating possible resonances—and valleys, which can indicate cancellations, extra absorption, or a lack of energy in certain frequencies.
 
--------------------------------------------------
+After trying several different window functions, I decided to use a \textit{Blackman} window, implemented with the \texttt{numpy.blackman} function from the \textbf{NumPy} library.
 
-Un copp tenim els resultats, fer avaraging tant temporal com frequencial... Justificar
+After the FT calculations, I apply an averaging algorithm that can be performed either over time or over frequency. Time averaging is particularly useful when using non-varying sounds for frequency analysis to excite the system—for example, constant pink noise—allowing more stable and defined results.
 
-Calcul final de diferencial
+Frequency averaging, on the other hand, is useful when analyzing the high-frequency range. In order to achieve good resolution in the low-frequency range, we often end up with unnecessarily high resolution in the high frequencies, since the data is displayed on a logarithmic scale. Therefore, if the user wants to focus on the high-frequency range, reducing the resolution through frequency averaging can make the visualization clearer and easier to interpret.
 
-Esquema de la pàgina
+The final step is calculate the difference between External Input analysis and Input from System analysis, in order to get frequency response of the system. This is done with a simple resta of Analysis results.
 
-Foto de la pagina
+\begin{figure}[H]
+	\begin{center}
+		\vspace{-2mm}
+		\tikzsetnextfilename{FT_page_schem}
+		\begin{tikzpicture}[node distance=30mm,on grid,auto, scale=1, bend angle=45]
+			
+			every node/.style={font=\small};
+			
+			\node (q_init) [draw, rectangle, minimum size=1cm,] {Input Buffer};
+			\node (null_init) [right=of q_init] {};
+			\node (q_delay) [draw, rectangle, minimum size=1cm, right=of null_init] {Delay Buffer};
+			\node (q_ext) [draw, rectangle, minimum size=1cm, above right=of q_delay, xshift=2cm] {Windowing, FT and Averaging of External Input};
+			\node (q_in_sys) [draw, rectangle, minimum size=1cm, below right=of q_delay, xshift=2cm] {Windowing, FT and Averaging of Input from System};
+			\node (q_diff) [draw, rectangle, minimum size=1cm, right=of q_delay, xshift=4cm] {Difference calculation};	
+			
+			\draw[blue, very thick, ->] (q_init) edge node {2 channels} (q_delay);
+			\draw[blue, dotted, very thick, ->] (q_delay) edge[bend right=10] node {1 channel} (q_ext);
+			\draw[blue, dotted, very thick, ->] (q_delay) edge[bend right=10] node {1 channel} (q_in_sys);
+			\draw[green, very thick, ->] (q_ext) edge[bend right=10] node {Analysis Data} (q_diff);
+			\draw[green, very thick, ->] (q_in_sys) edge[bend right=10] node {Analysis Data} (q_diff);
+			
+		\end{tikzpicture}
+		\vspace{-2mm}
+	\end{center}
+	\caption{Diagram of the architecture of the FT page}
+\end{figure}
+
+At the end of the page, GUI elements are added for user interaction, allowing the user to set averaging values and to pause or resume the analysis.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7
+	\linewidth]{Figures/FT_page.png}
+	\caption{FT page showing pink noise in the External Input, the signal captured with a microphone in the Input from System, and their difference, using various averaging options.}
+	\label{fig:FT Page}
+\end{figure}
 
 
 
@@ -390,8 +435,8 @@ The algorithm is based on the calculation of RMS (\textit{root mean square}) to 
 			\node (q_init) [draw, rectangle, minimum size=1cm,] {Input Buffer};
 			\node (null_init) [right=of q_init] {};
 			\node (q_delay) [draw, rectangle, minimum size=1cm, right=of null_init] {Delay Buffer};
-			\node (q_ext) [draw, rectangle, minimum size=1cm, above right=of q_delay, xshift=2cm] {Filtering and RMS Calculation of External Input};
-			\node (q_in_sys) [draw, rectangle, minimum size=1cm, below right=of q_delay, xshift=2cm] {Filtering and RMS Calculation of Input from System};
+			\node (q_ext) [draw, rectangle, minimum size=1cm, above right=of q_delay, xshift=2cm] {Filtering, RMS Calculation, and Averaging of External Input};
+			\node (q_in_sys) [draw, rectangle, minimum size=1cm, below right=of q_delay, xshift=2cm] {Filtering, RMS Calculation and Averaging of Input from System};
 			\node (q_diff) [draw, rectangle, minimum size=1cm, right=of q_delay, xshift=4cm] {Difference calculation};	
 			
 			\draw[blue, very thick, ->] (q_init) edge node {2 channels} (q_delay);
