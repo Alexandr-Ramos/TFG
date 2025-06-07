@@ -1,0 +1,17 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+	\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{	Set of Instructions to Manage the Delay Buffer}
+\PYG{l+s+sd}{	\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+    \PYG{c+c1}{\PYGZsh{} Get delayed data}
+	\PYG{k}{if} \PYG{n}{config}\PYG{o}{.}\PYG{n}{delay\PYGZus{}samples} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{:}
+		\PYG{n}{ext\PYGZus{}data} \PYG{o}{=} \PYG{n}{config}\PYG{o}{.}\PYG{n}{delay\PYGZus{}buffer}\PYG{p}{[}\PYG{o}{\PYGZhy{}}\PYG{n}{N\PYGZus{}FFT}\PYG{p}{:]}
+	\PYG{k}{else}\PYG{p}{:}
+		\PYG{n}{ext\PYGZus{}data} \PYG{o}{=} \PYG{n}{config}\PYG{o}{.}\PYG{n}{delay\PYGZus{}buffer}\PYG{p}{[}\PYG{o}{\PYGZhy{}}\PYG{p}{(}\PYG{n}{config}\PYG{o}{.}\PYG{n}{delay\PYGZus{}samples} \PYG{o}{+} \PYG{n}{N\PYGZus{}FFT}\PYG{p}{):}\PYG{o}{\PYGZhy{}}\PYG{n}{config}\PYG{o}{.}\PYG{n}{delay\PYGZus{}samples}\PYG{p}{]}
+
+	\PYG{k}{if} \PYG{n}{ext\PYGZus{}data} \PYG{o+ow}{is} \PYG{k+kc}{None} \PYG{o+ow}{or} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{ext\PYGZus{}data}\PYG{p}{)} \PYG{o}{\PYGZlt{}} \PYG{n}{N\PYGZus{}FFT}\PYG{p}{:}
+		\PYG{n}{analysis\PYGZus{}window}\PYG{o}{.}\PYG{n}{after}\PYG{p}{(}\PYG{l+m+mi}{100}\PYG{p}{,} \PYG{n}{update\PYGZus{}spectrogram}\PYG{p}{)}
+		\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}[DEBUG] Delayed ext\PYGZus{}data too short\PYGZdq{}}\PYG{p}{)}
+		\PYG{k}{return}
+
+\end{Verbatim}

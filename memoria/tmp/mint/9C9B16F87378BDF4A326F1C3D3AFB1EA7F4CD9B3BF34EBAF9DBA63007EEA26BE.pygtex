@@ -1,0 +1,44 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{Close and Open Sequence for Page Switching}
+\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{c+c1}{\PYGZsh{} Destroy and unload current pages}
+\PYG{n}{config}\PYG{o}{.}\PYG{n}{update\PYGZus{}enabled} \PYG{o}{=} \PYG{k+kc}{False}
+\PYG{n}{time}\PYG{o}{.}\PYG{n}{sleep}\PYG{p}{(}\PYG{l+m+mf}{0.3}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{}Give time for end whatever was executing}
+
+\PYG{c+c1}{\PYGZsh{} Close all matplotlib figures to prevent memory leak}
+\PYG{k}{for} \PYG{n}{fig} \PYG{o+ow}{in} \PYG{n}{plt}\PYG{o}{.}\PYG{n}{get\PYGZus{}fignums}\PYG{p}{():}
+	\PYG{n}{plt}\PYG{o}{.}\PYG{n}{close}\PYG{p}{(}\PYG{n}{fig}\PYG{p}{)}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}[INFO] Killed previous plots\PYGZdq{}}\PYG{p}{)}
+
+\PYG{k}{for} \PYG{n}{name}\PYG{p}{,} \PYG{n}{frame} \PYG{o+ow}{in} \PYG{n}{pages}\PYG{o}{.}\PYG{n}{items}\PYG{p}{():}
+	\PYG{n}{frame}\PYG{o}{.}\PYG{n}{pack\PYGZus{}forget}\PYG{p}{()}
+	\PYG{n}{frame}\PYG{o}{.}\PYG{n}{destroy}\PYG{p}{()}  \PYG{c+c1}{\PYGZsh{} Destroy the frame\PYGZsq{}s widgets}
+\PYG{n}{pages}\PYG{o}{.}\PYG{n}{clear}\PYG{p}{()}
+\PYG{n}{loaded\PYGZus{}pages}\PYG{o}{.}\PYG{n}{clear}\PYG{p}{()}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}[INFO] Cleared previous pages\PYGZdq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Destroy any active page}
+\PYG{k}{for} \PYG{n}{name} \PYG{o+ow}{in} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{pages}\PYG{o}{.}\PYG{n}{keys}\PYG{p}{()):}
+	\PYG{n}{pages}\PYG{p}{[}\PYG{n}{name}\PYG{p}{]}\PYG{o}{.}\PYG{n}{destroy}\PYG{p}{()}  \PYG{c+c1}{\PYGZsh{} remove from memory}
+	\PYG{k}{del} \PYG{n}{pages}\PYG{p}{[}\PYG{n}{name}\PYG{p}{]}
+	\PYG{k}{del} \PYG{n}{loaded\PYGZus{}pages}\PYG{p}{[}\PYG{n}{name}\PYG{p}{]}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}[INFO] Deleted previous pages\PYGZdq{}}\PYG{p}{)}
+
+\PYG{n}{time}\PYG{o}{.}\PYG{n}{sleep}\PYG{p}{(}\PYG{l+m+mf}{0.3}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{}Give more time}
+
+\PYG{n}{config}\PYG{o}{.}\PYG{n}{update\PYGZus{}enabled} \PYG{o}{=} \PYG{k+kc}{True}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{n}{page\PYGZus{}name}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Load and show new page}
+\PYG{k}{if} \PYG{n}{page\PYGZus{}name} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}FT\PYGZdq{}}\PYG{p}{:}
+	\PYG{n}{load\PYGZus{}ft\PYGZus{}page}\PYG{p}{()}
+\PYG{k}{elif} \PYG{n}{page\PYGZus{}name} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}31 Bands\PYGZdq{}}\PYG{p}{:}
+	\PYG{n}{load\PYGZus{}31bands\PYGZus{}page}\PYG{p}{()}
+\PYG{k}{elif} \PYG{n}{page\PYGZus{}name} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}Delay\PYGZdq{}}\PYG{p}{:}
+	\PYG{n}{load\PYGZus{}delay\PYGZus{}page}\PYG{p}{()}
+
+\PYG{n}{pages}\PYG{p}{[}\PYG{n}{page\PYGZus{}name}\PYG{p}{]}\PYG{o}{.}\PYG{n}{pack}\PYG{p}{(}\PYG{n}{fill}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}both\PYGZdq{}}\PYG{p}{,} \PYG{n}{expand}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{)}
+
+\end{Verbatim}

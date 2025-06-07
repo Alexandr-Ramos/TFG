@@ -222,15 +222,106 @@ At the bottom of the page, there is also a "Confirm" button, similar to the one 
 
 \section{Acoustics analysis}
 
-The acoustic analysis is devoloped with python librari LIBROSA\cite{librosa}
+This part represents the most complex part of the project, so it consists of different sets of tools, and some of them have to interact with each other. As was said before, each tool is inside an independent page.
+
+So, first, apart from initial definitions, drawings, and labels, we need solid page management to ensure correct operation (without processes interfering with each other). The idea to develop is to close and erase everything related to one page every time the user changes pages, and then the new page will be executed. If something needs to be saved for later use on another page, it will be stored in a globally accessible object, managed from within each page. For example, the number of samples used to delay the external input signal is saved in the \textit{config.py} module.
+
+\begin{minted}[label=\texttt{ipython}]{python3}
+	"""
+	Close and Open Sequence for Page Switching
+	"""
+	
+	# Destroy and unload current pages
+	config.update_enabled = False
+	time.sleep(0.3) #Give time for end whatever was executing
+	
+	# Close all matplotlib figures to prevent memory leak
+	for fig in plt.get_fignums():
+		plt.close(fig)
+	print("[INFO] Killed previous plots")
+	
+	for name, frame in pages.items():
+		frame.pack_forget()
+		frame.destroy()  # Destroy the frame's widgets
+	pages.clear()
+	loaded_pages.clear()
+	print("[INFO] Cleared previous pages")
+	
+	# Destroy any active page
+	for name in list(pages.keys()):
+		pages[name].destroy()  # remove from memory
+		del pages[name]
+		del loaded_pages[name]
+	print("[INFO] Deleted previous pages")
+	
+	time.sleep(0.3) #Give more time
+	
+	config.update_enabled = True
+	print(page_name)
+	
+	# Load and show new page
+	if page_name == "FT":
+		load_ft_page()
+	elif page_name == "31 Bands":
+		load_31bands_page()
+	elif page_name == "Delay":
+		load_delay_page()
+	
+	pages[page_name].pack(fill="both", expand=True)
+	
+\end{minted}
+
+All signal and analysis algorithms are implemented using the \textbf{NumPy}\cite{numpy} and \textbf{SciPy}\cite{scipy_signal} libraries.
 
 \subsection{Spectrogram (FT)}
 
-How implemented the spectogram
+In studio or live sound situations, a spectrogram shows the energy of different frequencies over time using \textbf{FT} (\textit{Fourier Transform}), displayed in the audible range (between 20 Hz and 20 kHz), and sometimes slightly extended beyond.
+
+In my case, as a starting point, I’m using \textit{numpy.fft.rfft}, which is the \textbf{RFFT} (\textit{Real Fast Fourier Transform}) function from the NumPy library. It is an efficient variation of the \textbf{FFT} (\textit{Fast Fourier Transform}) designed for real-valued input signals.
+
+But before starting the calculations, we first need to prepare the input data through two processes.
+
+First, we have to delay the \textit{External Input} signal to match it with the \textit{Input from System} signal. This is managed using a set of instructions that operate on the delay buffer. Also, if there is not enough data to apply the required delay, the system waits for the next iteration.
+
+\begin{minted}[label=\texttt{ipython}]{python3}
+	"""
+	Set of Instructions to Manage the Delay Buffer
+	"""
+	
+    # Get delayed data
+	if config.delay_samples == 0:
+		ext_data = config.delay_buffer[-N_FFT:]
+	else:
+		ext_data = config.delay_buffer[-(config.delay_samples + N_FFT):-config.delay_samples]
+
+	if ext_data is None or len(ext_data) < N_FFT:
+		analysis_window.after(100, update_spectrogram)
+		print("[DEBUG] Delayed ext_data too short")
+		return
+	
+\end{minted}
+
+Secondly, I apply a windowing process to the acquired data in order to obtain more pleasant and understandable results to display. It is true that this kind of process slightly alters the final results, but in this case, it can help to better identify peaks that stand out—indicating possible resonances—and valleys, which can indicate cancellations, extra absorption, or a lack of energy in certain frequencies.
+
+-------------------------------------------------
+
+Un copp tenim els resultats, fer avaraging tant temporal com frequencial... Justificar
+
+Calcul final de diferencial
+
+Esquema de la pàgina
+
+Foto de la pagina
+
+
+
+
 
 \subsection{RTA [DONE]}
 
 Usually, any form of analysis that is performed in real time can be considered \textbf{RTA} (\textit{Real-Time Analysis}). This includes a wide range of operations such as spectrum monitoring, transfer function measurements, phase and coherence analysis, and more—all happening as the signal flows. However, in my experience, in common usage, when someone refers to "RTA", they are often specifically referring to the classic 31-band graphical spectrum display. Also, the data collected on this page is especially important because it will be used to set the correction parameters. For all of that, this page has been named \textbf{RTA}.
+
+
 
 Also, there is another conflict. When someone defines the 31 bands and their bandwidth, it is common to use the definition provided in \textbf{IEC 61260}. However, this standard does not mathematically respect the logarithmic spacing between bands. The 31 bands are defined as 1/3 of an octave per band.
 
