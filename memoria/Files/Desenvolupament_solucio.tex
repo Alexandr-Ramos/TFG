@@ -220,7 +220,7 @@ At the bottom of the page, there is also a "Confirm" button, similar to the one 
 
 
 
-\section{Acoustics analysis}
+\section{Acoustics analysis [DONE]}
 
 This part represents the most complex part of the project, so it consists of different sets of tools, and some of them have to interact with each other. As was said before, each tool is inside an independent page.
 
@@ -266,14 +266,11 @@ So, first, apart from initial definitions, drawings, and labels, we need solid p
 		load_31bands_page()
 	elif page_name == "Delay":
 		load_delay_page()
-	
-	pages[page_name].pack(fill="both", expand=True)
-	
 \end{minted}
 
 All signal and analysis algorithms are implemented using the \textbf{NumPy}\cite{numpy} and \textbf{SciPy}\cite{scipy_signal} libraries.
 
-\subsection{Spectrogram (FT) [DONE]}
+\subsection{Spectrogram (FT)}
 
 In studio or live sound situations, a spectrogram shows the energy of different frequencies over time using \textbf{FT} (\textit{Fourier Transform}), displayed in the audible range (between 20 Hz and 20 kHz), and sometimes slightly extended beyond.
 
@@ -354,15 +351,15 @@ At the end of the page, GUI elements are added for user interaction, allowing th
 	\centering
 	\includegraphics[width=0.7
 	\linewidth]{Figures/FT_page.png}
-	\caption{FT page showing pink noise in the External Input, the signal captured with a microphone in the Input from System, and their difference, using various averaging options.}
+	\caption{Analysis window - FT page.}
 	\label{fig:FT Page}
 \end{figure}
 
+Figure~\ref{fig:FT Page} shows pink noise in the External Input, the signal captured with a microphone in the Input from System, and their difference, using various averaging options.
 
 
 
-
-\subsection{RTA [DONE]}
+\subsection{RTA}
 
 Usually, any form of analysis that is performed in real time can be considered \textbf{RTA} (\textit{Real-Time Analysis}). This includes a wide range of operations such as spectrum monitoring, transfer function measurements, phase and coherence analysis, and more—all happening as the signal flows. However, in my experience, in common usage, when someone refers to "RTA", they are often specifically referring to the classic 31-band graphical spectrum display. Also, the data collected on this page is especially important because it will be used to set the correction parameters. For all of that, this page has been named \textbf{RTA}.
 
@@ -479,13 +476,58 @@ At the end, there is: a pause button, which blocks the update function and can b
 	\includegraphics[width=1
 	\linewidth]{Figures/RTA_page.png}
 	\caption{Analysis window - RTA page.}
-	\label{fig:DBX_31s}
+	\label{fig:RTA_page}
 \end{figure}
 
 
 \subsection{Delay}
 
-Explain delay page
+Usually, all systems introduce some delay, primarily caused by the travel time of sound between the speaker and the microphone. However, additional subsystems can also contribute to further delay. In cases where we want to perform analysis in a live situation with music (for example, measuring during a live show), where the excitation signal is not time-invariant in terms of frequency content, it is crucial to synchronize both inputs of the program in order to obtain an accurate representation from the analysis.
+
+As explained in the FT and RTA pages, this synchronization is achieved using a dedicated buffer that allows shifting samples to align the signals. However, this mechanism needs to know how many samples the \textbf{External Input} must be delayed in order to compensate for the delay introduced by the system (\textbf{Input from System}). The main goal of this page is to calculate that delay value.
+
+For this purpose, I will use a correlation algorithm on both input signals to identify where they are most similar. However, to reduce the effect of amplitude changes introduced by the system, I first normalize each signal by its own RMS value before performing the correlation. For the correlation itself, I use the \texttt{scipy.signal.correlate} function from the \textit{SciPy} library.
+
+Once the correlation is obtained, I apply the absolute value to all results to eliminate the effect of possible polatity inversion introduced by the system (since an inverted signal would produce a negative correlation value). Then, I discard results corresponding to delays shorten than -10 ms. In the types of systems this program id designed to analyze, negative delays are physically impossible, as they would imply predicting a future signal. However, I allow a small negative range to help detect potential issues in case something goes wrong.
+
+Now we can search for the maximum value of the correlation, and the position of this maximum will indicate the number of samples to delay. The result will be labeled both in samples and in the equivalent milliseconds. Additionally, I will plot the absolute correlation result to visually assess whether the detection is reliable. If the maximum value stands out clearly from the rest of the correlation, it means a strong and well-defined match has been found. However, if the peak does not stand out much, or if there are multiple peaks of similar value, the result may not be entirely reliable.
+
+\begin{figure}[H]
+	\begin{center}
+		\vspace{-2mm}
+		\tikzsetnextfilename{Delay_page_schem}
+		\begin{tikzpicture}[node distance=30mm,on grid,auto, scale=1, bend angle=45]
+			
+			every node/.style={font=\small};
+			
+			\node (q_init) [draw, rectangle, minimum size=1cm,] {Input Buffer};
+			\node (q_norm) [draw, rectangle, minimum size=1cm, right=of q_init] {Normalize};
+			\node (q_cor) [draw, rectangle, minimum size=1cm, right=of q_norm] {Correlation};
+			\node (q_abs) [draw, rectangle, minimum size=1cm, right=of q_cor, xshift=2cm] {Absolute, Arange and serach Max};
+			
+			\draw[blue, very thick, ->] (q_init) edge node {} (q_norm);
+			\draw[blue, very thick, ->] (q_norm) edge node {} (q_cor);
+			\draw[green, very thick, ->] (q_cor) edge node {} (q_abs);
+			
+			
+		\end{tikzpicture}
+		\vspace{-2mm}
+	\end{center}
+	\caption{Diagram of the architecture of the Delay page}
+\end{figure}
+
+At the bottom of the page, I will add a “Pause / Resume” button and an “Apply” button, which saves the delay value in an object accessible to the other analysis pages. Once this parameter is saved, the other pages will automatically start applying the delay to their corresponding analyses.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7
+	\linewidth]{Figures/Delay_page.png}
+	\caption{Analysis window - Delay page.}
+	\label{fig:Delay_page}
+\end{figure}
+
+Figure~\ref{fig:Delay_page} was captured using pink noise, with the microphone placed approximately 25 cm from the speaker, which corresponds to nearly 0.25 ms of delay.
+
 
 \section{Acoustic correction}
 
