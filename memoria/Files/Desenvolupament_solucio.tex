@@ -1,8 +1,8 @@
-\chapter{Development of the chosen solutions}
+\chapter{Development of the chosen solutions [DONE]}
 
 Once we have defined what we want to do in the previous chapter, \textbf{Methodology, Considerations, and Decisions on Alternative Solutions}, it is time to get to work.
 
-\section{Graphic interface [DONE]}
+\section{Graphic interface}
 
 One important point is to provide a GUI (\textit{Graphical User Interface}) that is intuitive and easy to use. Since Python is being used for development, the chosen solution is to use the Tkinter\cite{Tkinter} library for the window and page system, and the Matplotlib\cite{Matplotlib} library to display graphical results of certain analysis algorithms.
 
@@ -97,7 +97,7 @@ Finally, even though Tkinter offers a default way to close windows using the "X"
 
 
 
-\section{Signal Path [DONE]}
+\section{Signal Path}
 
 To perform any kind of analysis or signal processing, the first thing we need is data—more specifically, signal data captured from the sound card. This data is sent to different modules so that each one can carry out its specific task. Additionally, in the case of the correction module, it is necessary to send output data back to the sound card (the corrected signal). Additionally, there will be non-signal data containing the results of the analysis, which will be sent to the DSP (\textit{Digital Signal Processor}) or the correction window.
 
@@ -178,7 +178,7 @@ Once the streams are running and managed from the root window, we need to handle
 	\caption{Stream management}
 \end{figure}
 
-\section{Settings page [DONE]}
+\section{Settings page}
 
 In order to be flexible with hardware, we need a settings window where we can tell the program which sound card, which channel, and which parameters we want to use. These parameters will also affect the resolution and fidelity of the analysis and processing, according to the sound card’s capabilities.
 
@@ -220,7 +220,7 @@ At the bottom of the page, there is also a "Confirm" button, similar to the one 
 
 
 
-\section{Acoustics analysis [DONE]}
+\section{Acoustics analysis}
 
 This part represents the most complex part of the project, so it consists of different sets of tools, and some of them have to interact with each other. As was said before, each tool is inside an independent page.
 
@@ -531,20 +531,114 @@ Figure~\ref{fig:Delay_page} was captured using pink noise, with the microphone p
 
 \section{Acoustic correction}
 
-Acoustic correction = DSP, allways have to be somethuing on the output buffer, by default, zeros.
+The acoustic correction is based on a \textbf{DSP} (\textit{Digital Signal Processor}) that processes the \textbf{External Input}, aiming to compensate for the imperfections of the analyzed system in order to improve the sound at the listening position. The processed signal is then sent through the \textbf{Output to System}.
+
+This processing is based on a 31-band graphic equalizer using the IEC 61260-defined bands, to ensure consistency with the analysis and with common industry solutions (as explained in the Analysis–RTA section).
+
+Furthermore, it must be able to bypass the processing, in case the user just wants to hear the unprocessed signal. It should also be possible to stop the \textbf{Output to System}, acting as a mute option. To switch between these three states, instead of using separate pages, I implemented a single button that cycles through the “Stop”, “Bypass”, and “EQ” states.
+
+As the output stream is almost always active and continuously reads data from the output buffer, the “Stop” state is implemented by simply writing zeros to the output buffer. In fact, zeros are also the default content of the buffer.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1
+	\linewidth]{Figures/DSP_page.png}
+	\caption{Correction window - DSP.}
+	\label{fig:DSP_page}
+\end{figure}
+
+A very important aspect of this page is that it must take the data saved from the Analysis–RTA section and invert it, since compensating the system requires applying the inverse of the measured values. This is done automatically when the page is opened or when the user presses “Refresh.” Additionally, the user has the option to manually enter their own values.
+
 
 \subsection{Bypass}
 
-How Bypass works, and why it works bad.
+When I was developing one of the first versions of the program, I did not use shared buffers—each page managed its own stream, directly reading data from the input stream, processing it as needed, and, if necessary, writing directly to the output stream. For example, this was the code used for the Bypass function at that time: it took data from the input stream, stored it in a temporary buffer used only for this function, and then wrote that buffer to the output stream.
+
+\begin{minted}[label=\texttt{ipython}]{python3}
+	"""
+	Core part of the code for the Bypass functionality that was working correctly.
+	"""
+	
+	indata, _ = input_stream.read(block_size.get())
+	buffer[:] = indata[:, ext_in_ch.get() - 1]
+	out_block = np.zeros((block_size.get(), output_stream.channels), dtype='float32')
+	out_block[:, out_to_sys_ch.get() - 1] = buffer
+	output_stream.write(out_block)
+\end{minted}
+
+This meant that every tool or page had to have its own input and output stream. However, while implementing the Bypass feature, I quickly realized that I couldn't use different streams simultaneously for the same physical input or output channels (for example, Bypass and FT analysis at the same time), because the Sounddevice library does not allow this.
+
+Then, I switched to the current signal and path management approach, as explained earlier in the \textbf{Signal Path} section. I'm explaining this because this is the point where the Bypass functionality stopped working properly. The important issue that appeared will be discussed later in the \textbf{Results} chapter.
+
+Nevertheless, the new signal path allows the program to simultaneously have a working Bypass while updating the FT analysis.
+
+Specifically, the idea behind the Bypass is to take the shared input buffer and copy its data to the output buffer. This process, beyond displaying a label indicating that Bypass is active, does not require any additional GUI elements or feedback.
+
+\begin{figure}[H]
+	\begin{center}
+		\vspace{-2mm}
+		\tikzsetnextfilename{Bypass_module_schem}
+		\begin{tikzpicture}[node distance=40mm, on grid,auto, scale=1, bend angle=45]
+			
+			every node/.style={font=\small};
+			
+			\node (q_init) [draw, rectangle, minimum size=1cm,] {Input Buffer};
+			\node (q_buf) [draw, rectangle, minimum size=1cm, right=of q_init] {Intermediate Buffer};
+			\node (q_out) [draw, rectangle, minimum size=1cm, right=of q_buf] {Output Buffer};
+			%\node (q_abs) [draw, rectangle, minimum size=1cm, right=of q_cor, xshift=2cm] {Absolute, Arange and serach Max};
+			
+			\draw[blue, very thick, ->] (q_init) edge node {} (q_buf);
+			\draw[blue, very thick, ->] (q_buf) edge node {} (q_out);
+			%\draw[green, very thick, ->] (q_cor) edge node {} (q_abs);
+			
+			
+		\end{tikzpicture}
+		\vspace{-2mm}
+	\end{center}
+	\caption{Diagram of the architecture of the Bypass module}
+\end{figure}
+
+As an attempt to solve the issue that will be discussed in the \textbf{Results} chapter, I added and managed an \textbf{Intermediate Buffer}, but it did not lead to any results.
+
 
 \subsection{31 Bars}
 
-Implementation of correction
+This is the core of the DSP and uses the same set of filters as the RTA–Analysis page. First of all, it should be noted that it shares the same issue as the Bypass module. Nevertheless, I developed this module.
 
-\section{Integration of monitoring mechanism}
+An important aspect is that this module must take data from the RTA–Analysis page, or user-defined data, to set the gain for each band. This serves as the basis for correction, aiming to level and compensate the room’s frequency response. At the end, all filtered signal blocks with adjusted gains are written to the \textbf{Output Buffer}.
 
-Home page and information that it appears / start, stop streams buttons...
+\begin{figure}[H]
+	\begin{center}
+		\vspace{-2mm}
+		\tikzsetnextfilename{EQ_module_schem}
+		\begin{tikzpicture}[node distance=30mm, on grid,auto, scale=1, bend angle=45]
+			
+			every node/.style={font=\small};
+			
+			\node (q_init) [draw, rectangle, minimum size=1cm,] {Input Buffer};
+			\node (q_fil) [draw, rectangle, minimum size=1cm, right=of q_init] {Bank of Filters};
+			\node (q_gain) [draw, rectangle, minimum size=1cm, right=of q_fil] {Gain Stage};
+			\node (q_data) [draw, rectangle, minimum size=1cm, above=of q_gain] {RTA-Analysis or User-Defined Data};
+			\node (q_out) [draw, rectangle, minimum size=1cm, right=of q_gain] {Output Buffer};
+			%\node (q_abs) [draw, rectangle, minimum size=1cm, right=of q_cor, xshift=2cm] {Absolute, Arange and serach Max};
+			
+			\draw[blue, very thick, ->] (q_init) edge node {} (q_fil);
+			\draw[blue, very thick, ->] (q_fil) edge node {} (q_gain);
+			\draw[blue, very thick, ->] (q_gain) edge node {} (q_out);
+			\draw[green, very thick, ->] (q_data) edge node {} (q_gain);
+			
+			
+		\end{tikzpicture}
+		\vspace{-2mm}
+	\end{center}
+	\caption{Diagram of the architecture of the EQ module}
+\end{figure}
+
+Most of the GUI is focused on this module. As shown in Figure~\ref{fig:DSP_page}, the user can refresh to load the data saved from the RTA analysis, apply those values, or manually define and apply their own values.
+
 
 \section{Others}
 
-More problems that I didn't expect, losing time solving them or at least trying to. No more time to implement additional functionalities...
+There is a list of additional tools that still need to be implemented, such as phase analysis, RT60 measurement, waterfall diagram, and others. Unfortunately, I had to invest much more time than expected solving bugs, errors, and various issues—most of them related to \textbf{GUI} and \textbf{Signal Path} management. Some of these issues are still not fully resolved, as discussed in the \textbf{Results} chapter.
+
+This left me without enough time to properly develop more advanced modules—especially in terms of researching and improving the filters used in the RTA and DSP modules—and to implement the remaining tools.
