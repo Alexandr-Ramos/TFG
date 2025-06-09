@@ -11,6 +11,36 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # from config import buffer_data, buffer_lock, delay_buffer
 import config
 
+# Scroll bar for Window
+class ScrollableFrame(tk.Frame):
+    """A scrollable frame that expands horizontally and scrolls vertically."""
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container, *args, **kwargs)
+
+        canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)
+        scrollbar = tk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = tk.Frame(canvas)
+
+        # Add the scrollable frame to the canvas with a tag
+        canvas_window = canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw", tags="frame")
+
+        # Scroll region updates when scrollable frame resizes
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        # Adjust frame width to match canvas width
+        def _on_canvas_configure(event):
+            canvas.itemconfig("frame", width=event.width)
+
+        canvas.bind("<Configure>", _on_canvas_configure)
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+
 block_size_ms = 100  # 100 ms for FT
 
 def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
@@ -37,7 +67,11 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
     analysis_window = tk.Toplevel(root)
     analysis_window.title("Analysis")
-    analysis_window.geometry("900x1200")
+    analysis_window.geometry("1300x900")
+
+    # Create scrollable area for main content
+    scroll_frame = ScrollableFrame(analysis_window)
+    scroll_frame.pack(side="right", fill="both", expand=True)
 
     # Stop stream when close window
     def on_closing():
@@ -78,12 +112,20 @@ def open_analysis(root, lbl_ext_in, lbl_out_to_sys, lbl_in_from_sys,
 
     analysis_window.protocol("WM_DELETE_WINDOW", on_closing)
 
-    # Create container frames
-    sidebar = tk.Frame(analysis_window, width=150, bg="#ddd")
-    content = tk.Frame(analysis_window, bg="white")
+    # # Create container frames
+    # sidebar = tk.Frame(scroll_frame.scrollable_frame, width=150, bg="#ddd")
+    # content = tk.Frame(scroll_frame.scrollable_frame, bg="white")
 
+    # Create sidebar (not scrollable)
+    sidebar = tk.Frame(analysis_window, width=150, bg="#ddd")
     sidebar.pack(side="left", fill="y")
-    content.pack(side="right", expand=True, fill="both")
+
+    # Use scrollable_frame for content
+    content = tk.Frame(scroll_frame.scrollable_frame, bg="white")
+    content.pack(fill="both", expand=True)
+
+    # sidebar.pack(side="left", fill="y")
+    # content.pack(side="right", expand=True, fill="both")
 
     # Dictionary to hold pages
     pages = {}
