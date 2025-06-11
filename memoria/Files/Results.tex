@@ -17,14 +17,25 @@ Less important, are: ......................................................
 
 \section{Final tests}
 
-About testing program on real situations
+For the final test, which involved a real-world scenario, I had the privilege of accessing professional equipment and a real theater. The venue was the \textbf{Teatre del Coro}, located in Sentmenat, Spain, and managed by the non-profit cultural association \textit{Societat Coral Obrera la Gloria Sentmenatenca}. The equipment available for the test was:
 
+\begin{itemize}
+	\item \textbf{EVO 4:} External USB audio interface, used as the sound card for the program.
+	\item \textbf{Audix TM1:} Measurement microphone, used as the source for the \textbf{Input from System} signal.
+	\item \textbf{Mackie SRM-750:} Loudspeaker, responsible for playing the \textbf{Output to System} signal.
+	\item \textbf{External Laptop:} Device used to generate the \textbf{External Input} signal.
+	\item \textbf{Behringer X32 Compact:} The theater's digital mixing console. It is required to route signals to the speaker. Since it is part of the system, it will also be used to compare the analysis tools of the RTA+C program with the built-in tools of the mixer.
+\end{itemize}
+
+The sound card and the measurement microphone were kindly provided by \textit{IMESDE, Integració, Distribució i Enginyeria Escènica, S.L.}, a private company located in La Garriga, Spain. All the devices used can be seen in Figure~\ref{fig:Coro_setup}.
+
+The first step was to place the measurement microphone. It was important to choose a good position where the microphone could capture the sound from a single representative point in the room. The first parameter to define was the microphone height. This venue is very versatile throughout the week, and the seats can be removed. However, events held without the seats typically do not require the use of the theater's sound system. Therefore, it was more appropriate to take measurements with the seats in place. Unfortunately, on the day I was able to perform the measurements, the seats had been partially removed. Nevertheless, I positioned the microphone at the average height of a seated person, as shown in Figure~\ref{fig:Mic_pos1} and Figure~\ref{fig:Mic_pos2}.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_micpos1.jpeg}
-	\caption{Mic Height 1 .................................................}
+	\caption{Microphone height relative to the seat}
 	\label{fig:Mic_pos1}
 \end{figure}
 
@@ -32,15 +43,16 @@ About testing program on real situations
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_micpos2.jpeg}
-	\caption{Mic Height 2 .................................................}
+	\caption{Microphone height = 1.1m}
 	\label{fig:Mic_pos2}
 \end{figure}
 
+Next, the microphone had to be placed at a representative point in the room. Since I was measuring only one speaker and the program operates in mono, the position had to be one where the speaker had good coverage and where the microphone was as close as possible to the center of the audience area. I decided to place the microphone approximately halfway through the depth of the room. Starting from a position where the speaker was directly in front of the microphone, I shifted it slightly to the right to bring it closer to the actual center of the room. As shown on figure~\ref{fig:Mic_pos3} and figure~\ref{fig:Floor_section}.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_micpos3.jpeg}
-	\caption{Mic positioning .................................................}
+	\caption{Microphone position relative to the speaker}
 	\label{fig:Mic_pos3}
 \end{figure}
 
@@ -48,31 +60,32 @@ About testing program on real situations
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_floor_trigo.jpeg}
-	\caption{Floor trigonometry of theater probes .................................................}
+	\caption{Horizontal distance between speaker and microphone}
 	\label{fig:Floor_section}
 \end{figure}
+
+Knowing that the speaker is suspended from a rigging bar at a hieght of approximately 6.5 m, and substrating the microphone height, the vertical distance between the two is around 5.4 m. Additionally, the horizontal distance—shown in Figure~\ref{fig:Floor_section}—is 7.03 m. Using basic trigonometric calculations, we can determine that the total distance between the speaker and the microphone is approximately 8.86 m, as illustrated in Figure~\ref{fig:spk-mic}.
+
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1
 	\linewidth]{Figures/Coro_section_trigo.jpeg}
-	\caption{Distance calculation between Mic and Speak............................................}
-	\label{fig:asdf}
+	\caption{Distance between microphone and speaker}
+	\label{fig:spk-mic}
 \end{figure}
 
-Speaker at 6.5m height, restar 1.1m from height of microphone ......................................
+Once the microphone was positioned, it was time to set up the rest of the equipment, as shown in Figure~\ref{fig:Coro_setup}.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1
 	\linewidth]{Figures/Coro_setup.jpeg}
-	\caption{Theater test setup .................................................}
+	\caption{All equipment set up}
 	\label{fig:Coro_setup}
 \end{figure}
 
-EVO 4 is our soundcard..........................................................
-
-Conection SETUP --> In order to compare our software solution with other tools, Have to connect to split all signals to both devices (Also needed to send the output signal to speaker)......................................................................................................
+In order to enable comparison between our software solution and the built-in tools of the digital mixing console (\textit{X32}), all signals must be routed through the \textit{X32}, as it offers advanced routing and distribution capabilities. Additionally, the console must be properly configured to route the signals correctly. Remember that we are using the \textit{EVO 4} as the audio interface for the RTA+C software, as shown in the following connection diagram.
 
 \begin{figure}[H]
 	\begin{center}
@@ -108,17 +121,26 @@ Conection SETUP --> In order to compare our software solution with other tools, 
 		\end{tikzpicture}
 		\vspace{-2mm}
 	\end{center}
-	\caption{Conection Setup ....................................}
+	\caption{System connection overview}
 \end{figure}
 
-To compare between X32 and RTA+C, I was switching between two inputs that have conceptuall stage of X32 - Output to System from last schematic.........................................
+I compared my system with two basic tools available on the \textit{X32} console:
+
+\begin{itemize}
+	\item \textbf{RTA (Real-Time Analysis):} Shown in Figure~\ref{fig:Coro_X32_nontreated}, this tool provides a real-time spectrum display. Although the underlying algorithm is unknown, it is visually the most similar tool to the RTA page in my program.
+	\item \textbf{Stereo GEQ (Graphic Equalizer):} A 31-band graphic EQ. Again, the specific algorithm used is not documented, but the concept is equivalent to the DSP window of the program.
+\end{itemize}
+
+Once everything was connected, it was time to sit at the control desk (shown in Figure~\ref{fig:Coro_setup}), perform basic checks on the signal path and gain staging, and disable or bypass all unnecessary options and tools on the mixing console. After that, the RTA+C program was launched.
+
+The first step in the program was to configure the sound card and audio parameters using the "\textbf{Settings}" window, as shown in Figure~\ref{fig:Coro_device_settings} and Figure~\ref{fig:Coro_audio_settings}.
 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_Device_settings.png}
-	\caption{Device Settings........................................................................}
+	\caption{Device Settings Window recognizing EVO 4 soundcard}
 	\label{fig:Coro_device_settings}
 \end{figure}
 
@@ -128,7 +150,7 @@ Left default audio settings ....................................................
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_Pink_Bad.png}
-	\caption{Second delay measurement..............................................................}
+	\caption{First RTA measurement over the External Input}
 	\label{fig:Coro_Bad_Pink}
 \end{figure}
 
@@ -136,7 +158,7 @@ Left default audio settings ....................................................
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_audio_settings.png}
-	\caption{Audio Settings........................................................................}
+	\caption{Audio Settings Window after changes}
 	\label{fig:Coro_audio_settings}
 \end{figure}
 
@@ -269,9 +291,4 @@ For music, use X32 EQ becouse the glitch .......................................
 \end{figure}
 
 Looks preaty nice .......................................................................
-
-
-\section{User experiance}
-
-About user experiance.
 
