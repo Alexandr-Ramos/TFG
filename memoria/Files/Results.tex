@@ -144,15 +144,19 @@ The first step in the program was to configure the sound card and audio paramete
 	\label{fig:Coro_device_settings}
 \end{figure}
 
-Left default audio settings ............................................................
+As we can see in Figure~\ref{fig:Coro_device_settings}, the program automatically recognized the \textit{EVO 4} soundcard without any prior configuration—just by plugging it in and setting the Device Settings window. At this point, I only changed the sample rate to 96 kHz from the Audio Settings page, confirming that the soundcard is compatible with this configuration. The other parameters were left at their default values.
+
+Just to check if the parameters were working properly, I opened the RTA page, but something was not functioning correctly.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.6
+	\includegraphics[width=0.8
 	\linewidth]{Figures/Coro_Pink_Bad.png}
 	\caption{First RTA measurement over the External Input}
 	\label{fig:Coro_Bad_Pink}
 \end{figure}
+
+As shown in Figure~\ref{fig:Coro_Bad_Pink}, with pink noise coming from the \textbf{External Input}, the External Input analysis shows a lack of low-frequency energy. I suspected that this might be due to the block size parameter being too small at this sample rate (which means a short analysis time window). To achieve a better representation of low frequencies, I increased the block size parameter, as shown in Figure~\ref{fig:Coro_audio_settings}, to 16,384 samples per block.
 
 \begin{figure}[H]
 	\centering
@@ -162,67 +166,89 @@ Left default audio settings ....................................................
 	\label{fig:Coro_audio_settings}
 \end{figure}
 
-Bloc Size too small --> Change BlockSize to 16384 --> 96KHz = 170.7ms ...........................................
+This block size, at a 96 kHz sampling rate, represents 170.7 ms, which in the worst case corresponds to approximately 3.4 wavelengths at 20 Hz (the lowest frequency considered). With this  setting, we can observe in Figure~\ref{fig:Coro_Good_Pink} that the results are not perfect, but much better. I considered them good enough for this test.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_Pink_Good.png}
-	\caption{Second delay measurement..............................................................}
+	\caption{Second RTA measurement over the External Input}
 	\label{fig:Coro_Good_Pink}
 \end{figure}
+
+Once this was working properly, I started measuring the delay, which should correspond to the time it takes for sound to travel from the speaker to the microphone. Considering the speed of sound as 340 m/s, this value should represent the distance between the two devices.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_Delay.png}
-	\caption{First delay measurement...............................................................}
+	\caption{First Delay Measurement}
 	\label{fig:Coro_delay1}
 \end{figure}
 
-36.56ms = 12.43m (340m/s) .........................................................................
+The measurement was not very stable—most iterations gave different values. However, I paused the process and took the most consistent and frequently repeated value. Additionally, I considered the correlation plot to ensure the result was reliable, focusing on cases where the maximum value clearly stood out from the rest. This can be seen in Figure~\ref{fig:Coro_delay1}. 
+
+The measured delay was 36.56 ms, which—considering the speed of sound (340 m/s)—corresponds to a distance of 12.43 m. However, as shown in Figure~\ref{fig:spk-mic}, the actual physical distance between the speaker and the microphone is 8.86 m, which is 3.57 m more than expected.
+
+It is logical to expect a slightly longer delay than the pure acoustic distance, since the signal passes through various systems before reaching the speaker—each of which may introduce some latency. For example, it is known that the mixing console adds approximately 0.3 ms of latency per output channel, which corresponds to only 0.1 m of additional delay. Even if this latency accumulates through multiple stages, it is still not enough to justify the extra 3.57 m (around 10.5 ms).
+
+Because of this significant discrepancy, I continued measuring to investigate further.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_delay_2.png}
-	\caption{Second delay measurement..............................................................}
+	\caption{Second Delay Measurement}
 	\label{fig:Coro_delay2}
 \end{figure}
 
-32.28ms = 10.98m (340m/s) ..............................................................
+After observing the iterations of the plot and the measurement results for a while, I realized that there was a second value that appeared repeatedly across many iterations and also made sense visually on the plot. As shown in Figure~\ref{fig:Coro_delay2}, the plot clearly highlights two peaks with significant correlation values. At the right moment I stopped the measurement, the lower time value among the two had the highest correlation, which corresponded to 32.28 ms. This value translates to a distance of 10.98 m, which is 2.12 m more than the actual physical distance between the speaker and the microphone.
+
+Although not fully conclusive, this second measurement seems more reasonable than the previous one, so I decided to use this value and apply it over the rest of the measurements.
+
+Next step is open the FT page.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_FT_NO_av.png}
-	\caption{FT - Pink Noise - No Avarage..............................................................}
+	\caption{FT Measurement Without Averaging Applied}
 	\label{fig:Coro_FT_no_av}
 \end{figure}
+
+Continuing with Pink noise excitation from \textbf{External Input}. I can see the FT page results without applying any avarage option, as shown on Figure~\ref{fig:Coro_FT_no_av}. But the plots are very anarchic, changes a lot between iterations, and is difficult to make a solid interpretaion.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_FT_time_av.png}
-	\caption{FT - Pink Noise - Time Avarage..............................................................}
+	\caption{FT Measurement With Time Averaging Applied}
 	\label{fig:Coro_FT_time_av}
 \end{figure}
+
+In Figure~\ref{fig:Coro_FT_time_av}, a time average is applied, which greatly improves the consistency between iterations and makes it much easier to interpret the displayed data. However, interpreting the data in the high-frequency range is still somewhat confusing. To address this, I applied frequency averaging.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_FT_WITH_av.png}
-	\caption{FT - Pink Noise - Time Avarage + Frequency Average...........................................}
+	\caption{FT Measurement with Time and Frequency Averaging Applied}
 	\label{fig:Coro_FT_av}
 \end{figure}
+
+With all averaging options applied, we obtain the result shown in Figure~\ref{fig:Coro_FT_av}. While we lose considerable resolution in the low-frequency range, the high-frequency representation becomes much more visually understandable.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/Coro_X32_nontreated.jpeg}
-	\caption{Microphone caption without any treatment, using X32 analysis tool....................}
+	\caption{X32 RTA Tool with Untreated Input from System Signal}
 	\label{fig:Coro_X32_nontreated}
 \end{figure}
+
+To check whether the results are reasonably close to reality, we use the \textbf{X32} RTA tool as a reference and compare it with the \textbf{Input from System} analysis. As shown in Figure~\ref{fig:Coro_X32_nontreated}, and comparing it with the FT page of the RTA+C program (see previous figures), the results look very similar—especially the dip between 1000 Hz and 4000 Hz. Therefore, I consider that the FT page works pretty well.
+
+Next step: open the RTA page.
 
 \begin{figure}[H]
 	\centering
