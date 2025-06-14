@@ -1,21 +1,26 @@
-\chapter{Results}
+\chapter{Results [DONE]}
 
-About the final program results
-
-There ar not just things to finish or implement, also, it is nedded to solve some actual problems. Most important of them are:
-
-Signal Path glitch and page switching.................................
-
-Less important, are: ......................................................
+After four months of development, the program remains unfinished. Several unforeseen difficulties were encountered during the process, which required significantly more time than initially expected. As a result, there are not only some features still pending implementation, but also several existing issues that need to be resolved. The most important of these are:
 
 \begin{itemize}
-	\item \textbf{Filter Algorithms:}
+	\item \textbf{GUI freeze:} Occasionally, the interface freezes when switching between pages in the analysis window. Debugging efforts have shown that the program continues to run in the background, but the graphical interface becomes completely unresponsive, leaving no option but to force quit and restart the program.
 	
-	\item \textbf{User Limitations:} For example, since we are using the Sounddevice library and managing both inputs as a single input stream, we have the limitation that both channels must come from the same sound card. However, the program currently allows the selection of different sound cards for each input channel.
+	\item \textbf{Output to System Glitch:} This is the main issue referred to several times in the Acoustic Correction chapter. It renders the Bypass and EQ modules nearly unusable in real-time situations, as it introduces a glitch effect in the Output to System signal. After conducting various tests, I concluded that the problem likely stems either from how data is managed within the DSP window or from how this window interacts with the output stream. The glitch appears to be caused by repeating or skipping certain data blocks in the output stream. When the program is configured with a very large block size, it becomes clearly audible that some blocks are played more than once, while others are skipped entirely.
+\end{itemize}
+
+Another minor issue is:
+
+\begin{itemize}
+		
+	\item \textbf{Filter Algorithms:} It would be beneficial to invest more time into researching and designing better filters in order to achieve more accurate and appropriate results, both for analysis and correction purposes.
+	
+	\item \textbf{User Limitations:} Additionally, the graphical user interface (GUI) could be more intuitive and requires refinement to offer clearer options and a better representation of ongoing processes. Furthermore, it is necessary to implement more constraints to prevent misconfigurations or malfunctions. For example, since the program uses the Sounddevice library and handles both inputs through a single input stream, both channels must originate from the same sound card. However, the current version of the program still allows users to select different sound cards for each input channel—an option that should be restricted to avoid improper operation.
 	
 \end{itemize}
 
-\section{Final tests [DONE]}
+But not all news is bad. As will be shown in the \textbf{Final Test} section below, the program is already partially usable, and the developed tools work quite well.
+
+\section{Final tests}
 
 For the final test, which involved a real-world scenario, I had the privilege of accessing professional equipment and a real theater. The venue was the \textbf{Teatre del Coro}, located in Sentmenat, Spain, and managed by the non-profit cultural association \textit{Societat Coral Obrera la Gloria Sentmenatenca}. The equipment available for the test was:
 
