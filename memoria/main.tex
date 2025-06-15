@@ -41,17 +41,11 @@
 \input{Files/Metodologia}
 \newpage
 
-%\input{Files/Plantejament_solucions}
-%\newpage
-
 \input{Files/Desenvolupament_solucio}
 \newpage
 
 \input{Files/Results}
 \newpage
-
-%\input{Files/Pressupost}
-%\newpage
 
 %\input{Files/Impacte_ambiental_social}
 %\newpage
@@ -62,42 +56,13 @@
 \newpage
 \printbibliography[heading=bibintoc]
 
+\newpage
 \backmatter
 \pagenumbering{Roman}
-\chapter{Annex 1: Budget}
 
+\input{Files/Pressupost}
+\newpage
 
-\chapter{Annex 2: Complete Code}
-
-\begin{minted}[label=\texttt{divisiones.py}]{python3}
-	"""
-	Biblioteca con definiciones importantes para la división de números.
-	Se incluyen las funciones divideSiDivisible() y cocienteModulo().
-	"""
-	
-	def divideSiDivisible(nume, deno):
-	"""
-	Si nume es divisible por deno, devuelve la división
-	entera. Si no lo es, devuelve None.
-	"""
-	
-	if not nume % deno:
-	return nume // deno
-	
-	
-	def cocienteModulo(nume, deno):
-	"""
-	Devuelve el conciente entero y el resto de
-	la divisi
-	ón entera (mod) de dos números.
-	"""
-	
-	return nume // deno, nume % deno
-	
-\end{minted}
-
-
-\inputminted[label={src/divisions.py},firstline=6,lastline=13]{python}{src/divisions.py}
-
+%\input{Files/Codi}
 
 \end{document}
