@@ -64,10 +64,40 @@
 
 \backmatter
 \pagenumbering{Roman}
-\chapter{Annex 1}
+\chapter{Annex 1: Budget}
 
 
-\chapter{Annex 2}
+\chapter{Annex 2: Complete Code}
+
+\begin{minted}[label=\texttt{divisiones.py}]{python3}
+	"""
+	Biblioteca con definiciones importantes para la división de números.
+	Se incluyen las funciones divideSiDivisible() y cocienteModulo().
+	"""
+	
+	def divideSiDivisible(nume, deno):
+	"""
+	Si nume es divisible por deno, devuelve la división
+	entera. Si no lo es, devuelve None.
+	"""
+	
+	if not nume % deno:
+	return nume // deno
+	
+	
+	def cocienteModulo(nume, deno):
+	"""
+	Devuelve el conciente entero y el resto de
+	la divisi
+	ón entera (mod) de dos números.
+	"""
+	
+	return nume // deno, nume % deno
+	
+\end{minted}
+
+
+\inputminted[label={src/divisions.py},firstline=6,lastline=13]{python}{src/divisions.py}
 
 
 \end{document}
