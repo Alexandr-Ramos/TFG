@@ -1,19 +1,19 @@
 \chapter{Methodology, consideration and decision on alternative solutions}
 
-Looking at the "Background and/or status of the matter" chapter, I want to develop a solution that incorporates as many of the strengths of existing solutions as possible.
+Looking at the "State of the art" chapter, I want to develop a solution that incorporates as many of the strengths of existing solutions as possible. Considering the available resources, the most effective solution is a \textbf{software-based solution} that interacts with the sound card, display, mouse, and keyboard available in a standard computer.
 
-Considering the available resources, the most effective solution is a \textbf{software-based solution} that interacts with the sound card, display, mouse, and keyboard available in an OS (\textit{Operating System}).
-
-This decision allows me to implement the following strength points:
+This approach enables me to implement a solution that takes into account the followings strength points:
 
 \begin{itemize}
-	\item \textbf{Analysis capabilities:} This will include: spectrogram, 31-band graphic display, delay measurement, phase measurement, RT60 measurement, and waterfall diagram.
+	\item \textbf{Analysis capabilities:} This must include: spectrogram, 31-band graphic display, delay measurement, phase measurement, RT60 measurement, and waterfall diagram.
 	
 	\item \textbf{Processing capabilities:} It must be able to process a live signal using an equalizer implemented with digital filters.
 	
-	\item \textbf{Signal management:} It must handle an external clean signal, a signal that has passed through the system, and output a processed signal — all in real-time.
+	\item \textbf{Signal management:} It must handle an external clean signal, a signal that has passed through the system, and output a processed signal.
 	
-	\item \textbf{Low resource usage:} Considering the time available for this project and the limited budget. In my case, I already have everything I need for development, but anyone with a PC, a sound card, a microphone, and a speaker can use this solution.
+	\item \textbf{Real time:} The system must operate in live situations, meaning it must be capable of analyzing and processing audio in real time.
+	
+	\item \textbf{Low resource usage:} The solution should be usable by anyone with a PC, a sound card, a microphone, and a speaker—without requiring any other high-end hardware.
 \end{itemize}
 
 Of course, the type and quality of the sound card and microphone will be critical to obtaining accurate and realistic results. Under optimal conditions, a high-resolution sound card with good SNR, along with a high-quality measurement microphone, is required. These microphones are typically small-diaphragm, condenser, omnidirectional, with a flat frequency response and good signal-to-noise ratio.
@@ -28,7 +28,7 @@ I will be using a Behringer U-Phoria UMC204HD sound card, an old Electro-Voice d
 	\centering
 	\includegraphics[width=0.6
 	\linewidth]{Figures/HomeSetUp.jpeg}
-	\caption{Home setup showing the sound card, the speaker, and the microphone.}
+	\caption[Home setup]{Home setup showing the sound card, the speaker, and the microphone.}
 	\label{fig:Home Setup}
 \end{figure}
 

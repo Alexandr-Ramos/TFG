@@ -1,6 +1,8 @@
 \chapter{Development of the chosen solutions}
 
-Once we have defined what we want to do in the previous chapter, \textbf{Methodology, Considerations, and Decisions on Alternative Solutions}, it is time to get to work.
+Explicar, enumerar els apartas del capítol -----------------------------------------------------------------------------------------------------------------------
+
+The developed solution will be published in a GitHub repository \cite{git}
 
 \section{Graphic interface}
 
@@ -78,9 +80,9 @@ One very important aspect of using Tkinter is object management. By default, com
 
 Finally, even though Tkinter offers a default way to close windows using the "X" symbol in the top left corner of the window, it does not always work properly—it may simply erase the window but not stop the process that is running from that window. To correctly close any window, it is important to define a close function. This function will be executed when the user clicks the "X" symbol, replacing the default function.
 
-\begin{minted}[label=\texttt{ipython}]{python3}
+\begin{minted}[label=\texttt{rta+c.py}]{python3}
 	"""
-	In this case, this is the function that closes the root window and, as a consequence, the entire program.
+	Function that closes the root window and, as a consequence, the entire program.
 	"""
 	
 	# Close all
@@ -91,15 +93,14 @@ Finally, even though Tkinter offers a default way to close windows using the "X"
 		time.sleep(0.5)
 		root.destroy()
 	
-	root.protocol("WM_DELETE_WINDOW", on_close_all)
-	
+	root.protocol("WM_DELETE_WINDOW", on_close_all)	
 \end{minted}
 
 
 
 \section{Signal Path}
 
-To perform any kind of analysis or signal processing, the first thing we need is data—more specifically, signal data captured from the sound card. This data is sent to different modules so that each one can carry out its specific task. Additionally, in the case of the correction module, it is necessary to send output data back to the sound card (the corrected signal). Additionally, there will be non-signal data containing the results of the analysis, which will be sent to the DSP (\textit{Digital Signal Processor}) or the correction window.
+To perform any kind of analysis or signal processing, the first thing we need is data—more specifically, signal data captured from the sound card. This data is sent to different modules so that each one can carry out its specific task. Additionally, in the case of the correction module, it is necessary to send output data back to the sound card (the corrected signal). Furthermore, there will be non-signal data containing the results of the analysis, which will be sent to the DSP (\textit{Digital Signal Processor}) or the correction window.
 
 \begin{figure}[H]
 	\begin{center}
@@ -138,7 +139,7 @@ To perform any kind of analysis or signal processing, the first thing we need is
 	\caption{Basic representation of the required signal path}
 \end{figure}
 
-To achieve real-time processing, we must manage a constant flow of data. For this purpose, I will use a stream-style data management approach, which consists of capturing small blocks of data, processing them, and continuously sending the results. To capture and send this stream to and from the sound card, the Sounddevice library \cite{sounddevice} will be used.
+To achieve real-time processing, we must manage a constant flow of data. For this purpose, It will be used a stream-style data management approach, which captures small blocks of data, process them, and continuously sends the results. To capture and send this stream to and from the sound card, the Sounddevice library \cite{sounddevice} will be used.
 
 To simplify things, the two required inputs—\textbf{External Input} and \textbf{Input from System}—will be handled using a single input stream, while the output—\textbf{Output to System}—will be managed through a separate, independent output stream. All streams will share the same parameters, such as bit depth, sample rate, and block size. However, the audio device and channel parameters will be independently set for each stream. In the case of the input stream, each input channel must also be configured separately.
 
@@ -155,7 +156,7 @@ Once the streams are running and managed from the root window, we need to handle
 			\node (q_ext) {External Input};
 			%\node (null_ext) [right=of q_ext] {};
 			\node (q_in_st) [draw, rectangle, minimum size=1cm, right=of q_ext, yshift=-1cm, xshift=1cm]{Input Stream};
-			\node (q_inp) [left=of q_in_st, yshift=-1cm, xshift=-1cm]{Input form System};
+			\node (q_inp) [left=of q_in_st, yshift=-1cm, xshift=-1cm]{Input from System};
 			\node (q_inp_bf) [draw, rectangle, minimum size=1cm, right=of q_in_st]{Input Buffer};
 			\node (q_mod) [draw, rectangle, minimum size=1cm, below right=of q_inp_bf]{Tools Modules};
 			\node (q_out_bf) [draw, rectangle, minimum size=1cm, below left=of q_mod]{Output Buffer};
@@ -182,7 +183,7 @@ Once the streams are running and managed from the root window, we need to handle
 
 In order to be flexible with hardware, we need a settings window where we can tell the program which sound card, which channel, and which parameters we want to use. These parameters will also affect the resolution and fidelity of the analysis and processing, according to the sound card’s capabilities.
 
-I will splitt setting window in tow pages:
+The settings window will be split into two pages:
 \begin{itemize}
 	\item \textbf{Device Settings:} Where we can define which sound card and which channels we want to use.
 	\item \textbf{Audio Settings:} Where we can define which audio parameters we want to use.
@@ -190,7 +191,7 @@ I will splitt setting window in tow pages:
 
 \subsection{Device Settings}
 
-I will use sounddevice methods to identify which sound cards and channels are available, and filter them into inputs and outputs. Then, using a questionnaire-style interface, I will let the user select which sound card and which channel they want for each required signal using a dropdown menu.
+The Sounddevice library will be used to identify which sound cards and channels are available, and filter them into inputs and outputs. Then, using a questionnaire-style interface, I will let the user select which sound card and which channel they want for each required signal using a dropdown menu.
 
 At the bottom of the page, there will be a "Confirm" button that performs some basic checks, such as verifying that the "external input" and the "input from system" are not the same input channel. Then, it will display a green message if the settings are applied successfully, or a red one if something goes wrong. Finally, it will update the values and labels on the root window to indicate which channels are currently selected.
 
@@ -198,7 +199,7 @@ At the bottom of the page, there will be a "Confirm" button that performs some b
 	\centering
 	\includegraphics[width=0.8
 	\linewidth]{Figures/DevSet.png}
-	\caption{Device Settings page showing a red message because the user selected an invalid configuration.}
+	\caption[Device setting page]{Device Settings page showing a red message because the user selected an invalid configuration.}
 	\label{fig:Device Settings}
 \end{figure}
 
@@ -214,7 +215,7 @@ At the bottom of the page, there is also a "Confirm" button, similar to the one 
 	\centering
 	\includegraphics[width=0.8
 	\linewidth]{Figures/AudSet.png}
-	\caption{Audio Settings page showing a green message.}
+	\caption[Audio setting page]{Audio Settings page showing a green message.}
 	\label{fig:Audio Settings}
 \end{figure}
 
@@ -226,7 +227,7 @@ This part represents the most complex part of the project, so it consists of dif
 
 So, first, apart from initial definitions, drawings, and labels, we need solid page management to ensure correct operation (without processes interfering with each other). The idea to develop is to close and erase everything related to one page every time the user changes pages, and then the new page will be executed. If something needs to be saved for later use on another page, it will be stored in a globally accessible object, managed from within each page. For example, the number of samples used to delay the external input signal is saved in the \textit{config.py} module.
 
-\begin{minted}[label=\texttt{ipython}]{python3}
+\begin{minted}[label=\texttt{analysis.py}]{python3}
 	"""
 	Close and Open Sequence for Page Switching
 	"""
@@ -276,36 +277,33 @@ In studio or live sound situations, a spectrogram shows the energy of different 
 
 In my case, as a starting point, I’m using \texttt{numpy.fft.rfft}, which is the \textbf{RFFT} (\textit{Real Fast Fourier Transform}) function from the NumPy library. It is an efficient variation of the \textbf{FFT} (\textit{Fast Fourier Transform}) designed for real-valued input signals.
 
-In order to achieve good resolution, the processing block size on this page is independent of the one set in the settings pages. It uses at least 100 ms of data (more precisely, the next power-of-two number of samples equivalent to 100 ms). This provides a minimum frequency resolution of 10 Hz.
+In order to achieve good resolution, the processing block size on this page is independent of the one set in the settings pages. It uses at least 100 ms of data (more precisely, the next power-of-two number of samples equivalent to 100 ms). This provides a minimum frequency resolution of 10 Hz, as given by
+(\ref{eq:delta-f}):
 
-\begin{figure}[H]
-	\centering
-	\caption{Frequency Resolution as a Function of Time Window}
-	\[
+\begin{equation}
+	\label{eq:delta-f}
 	\Delta f = \frac{1}{T}
-	\]
-\end{figure}
+\end{equation}
 
 But before starting the calculations, we first need to prepare the input data through two processes.
 
 First, we have to delay the \textit{External Input} signal to match it with the \textit{Input from System} signal. This is managed using a set of instructions that operate on the delay buffer. Also, if there is not enough data to apply the required delay, the system waits for the next iteration.
 
-\begin{minted}[label=\texttt{ipython}]{python3}
-	"""
-	Set of Instructions to Manage the Delay Buffer
-	"""
-	
-    # Get delayed data
-	if config.delay_samples == 0:
-		ext_data = config.delay_buffer[-N_FFT:]
-	else:
-		ext_data = config.delay_buffer[-(config.delay_samples + N_FFT):-config.delay_samples]
+\begin{minted}[label=\texttt{analysis.py}]{python3}
+"""
+Set of Instructions to Manage the Delay Buffer
+"""
 
-	if ext_data is None or len(ext_data) < N_FFT:
-		analysis_window.after(100, update_spectrogram)
-		print("[DEBUG] Delayed ext_data too short")
-		return
-	
+# Get delayed data
+if config.delay_samples == 0:
+	ext_data = config.delay_buffer[-N_FFT:]
+else:
+	ext_data = config.delay_buffer[-(config.delay_samples + N_FFT):-config.delay_samples]
+
+if ext_data is None or len(ext_data) < N_FFT:
+	analysis_window.after(100, update_spectrogram)
+	print("[DEBUG] Delayed ext_data too short")
+	return	
 \end{minted}
 
 Secondly, I apply a windowing process to the acquired data in order to obtain more pleasant and understandable results to display. It is true that this kind of process slightly alters the final results, but in this case, it can help to better identify peaks that stand out—indicating possible resonances—and valleys, which can indicate cancellations, extra absorption, or a lack of energy in certain frequencies.
@@ -316,7 +314,7 @@ After the FT calculations, I apply an averaging algorithm that can be performed 
 
 Frequency averaging, on the other hand, is useful when analyzing the high-frequency range. In order to achieve good resolution in the low-frequency range, we often end up with unnecessarily high resolution in the high frequencies, since the data is displayed on a logarithmic scale. Therefore, if the user wants to focus on the high-frequency range, reducing the resolution through frequency averaging can make the visualization clearer and easier to interpret.
 
-The final step is calculate the difference between External Input analysis and Input from System analysis, in order to get frequency response of the system. This is done with a simple resta of Analysis results.
+The final step is calculate the difference between External Input analysis and Input from System analysis, in order to get frequency response of the system. This is done with a simple difference calculation of Analysis results.
 
 \begin{figure}[H]
 	\begin{center}
@@ -389,7 +387,7 @@ Also, there is another conflict. When someone defines the 31 bands and their ban
 
 \begin{minted}[label=\texttt{ipython}]{python3}
 	"""
-	In order to obtain the true 1/3 octave values, the following line of code was used with IPython3.
+	To obtain the true 1/3 octave values, the following line was used with IPython3.
 	The results were rounded to the second decimal place.
 	"""
 	
@@ -403,7 +401,7 @@ On the other hand, this standard is widely used in many professional devices and
 	\centering
 	\includegraphics[width=1
 	\linewidth]{Figures/DBX_231s.png}
-	\caption{Image of the front panel of the DBX 231s \cite{DBX_31s}, where we can observe that the center frequency bands are the same as those defined in IEC 61260.}
+	\caption[Image of the front panel of the DBX 231s]{Image of the front panel of the DBX 231s, where we can observe that the center frequency bands are the same as those defined in IEC 61260. Extracted form \cite{DBX_31s}}
 	\label{fig:DBX_31s}
 \end{figure}
 
@@ -418,7 +416,7 @@ I created this buffer with the capacity to store 1 second of data, which can be 
 
 Once the data in the "delay buffer" is adjusted, we can start applying algorithms to perform the analysis.
 
-The algorithm is based on the calculation of RMS (\textit{root mean square}) to obtain the energy for each frequency band, which is divided using filters for each band.
+The algorithm is based on the calculation of RMS (\textit{root mean square} \ref{eq:RMS}) to obtain the energy for each frequency band, which is divided using filters for each band.
 
 
 \begin{figure}[H]
@@ -449,25 +447,19 @@ The algorithm is based on the calculation of RMS (\textit{root mean square}) to 
 \end{figure}
 
 
-In this case, I'm not using any kind of windowing. As a starting point, I'm using 4th-order IIR (\textit{infinite impulse response}) Butterworth band-pass filters for each band. All these filters are created using the \texttt{scipy.signal} library \cite{scipy_signal}, which returns SOS (\textit{Second-Order Section}) parameters.
+In this case, I'm not using any kind of windowing. As a starting point, I'm using 4th-order IIR (\textit{infinite impulse response}) Butterworth band-pass filters for each band. All these filters are created using the \texttt{scipy.signal} library \cite{scipy_signal}, which returns SOS (\textit{Second-Order Section}) parameters, given by \ref{eq:SOS}.
 
-\begin{figure}[H]
-	\centering
-	\caption{Second-Order Sections for IIR filters with their parameters}
-	\[
+\begin{equation}
+	\label{eq:SOS}
 	H(z) = \frac{b_0 + b_1 z^{-1} + b_2 z^{-2}}{1 + a_1 z^{-1} + a_2 z^{-2}}
-	\]
-\end{figure}
+\end{equation}
 
-When the program applies each filter to the signal block, it also calculates the RMS and converts it to a logarithmic scale, which will be plotted on the graph and used to calculate the difference graph.
+When the program applies each filter to the signal block, it also calculates the RMS (given by \ref{eq:RMS})and converts it to a logarithmic scale, which will be plotted on the graph and used to calculate the difference graph.
 
-\begin{figure}[H]
-	\centering
-	\caption{Root Mean Square to calculate energy from filtered signal}
-	\[
+\begin{equation}
+	\label{eq:RMS}
 	RMS = \sqrt{ \frac{1}{N} \sum_{n=0}^{N-1} x^2[n] }
-	\]
-\end{figure}
+\end{equation}
 
 At the end, there is: a pause button, which blocks the update function and can be used to pause the graphics; a save button, to store the current values of the difference graph for later use in the correction window; and a time averaging section that works exactly the same as the averaging section from the FT page, except that it does not include frequency averaging (since it doesn't make sense to apply frequency averaging between bands).
 
@@ -486,9 +478,15 @@ Usually, all systems introduce some delay, primarily caused by the travel time o
 
 As explained in the FT and RTA pages, this synchronization is achieved using a dedicated buffer that allows shifting samples to align the signals. However, this mechanism needs to know how many samples the \textbf{External Input} must be delayed in order to compensate for the delay introduced by the system (\textbf{Input from System}). The main goal of this page is to calculate that delay value.
 
-For this purpose, I will use a correlation algorithm on both input signals to identify where they are most similar. However, to reduce the effect of amplitude changes introduced by the system, I first normalize each signal by its own RMS value before performing the correlation. For the correlation itself, I use the \texttt{scipy.signal.correlate} function from the \textit{SciPy} library.
+For this purpose, a cross-correlation algorithm \ref{eq:cor} is applied to both input signals to identify where they are most similar. To reduce the influence of amplitude variations introduced by the system, each signal is first normalized by its own RMS value, resulting in a normalized correlation. The correlation is computed using the \texttt{scipy.signal.correlate} function from the \textit{SciPy} library.
 
-Once the correlation is obtained, I apply the absolute value to all results to eliminate the effect of possible polatity inversion introduced by the system (since an inverted signal would produce a negative correlation value). Then, I discard results corresponding to delays shorten than -10 ms. In the types of systems this program id designed to analyze, negative delays are physically impossible, as they would imply predicting a future signal. However, I allow a small negative range to help detect potential issues in case something goes wrong.
+\begin{equation}
+	\label{eq:cor}
+	r_{xy}[k] = \sum_{n=-\infty}^{\infty} x[n] \cdot y[n + k]
+\end{equation}
+
+
+Once the correlation is obtained, I apply the absolute value to all results to eliminate the effect of possible polarity inversion introduced by the system (since an inverted signal would produce a negative correlation value). Then, I discard results corresponding to delays shorter than -10 ms. In the types of systems this program id designed to analyze, negative delays are physically impossible, as they would imply predicting a future signal. However, I allow a small negative range to help detect potential issues in case something goes wrong.
 
 Now we can search for the maximum value of the correlation, and the position of this maximum will indicate the number of samples to delay. The result will be labeled both in samples and in the equivalent milliseconds. Additionally, I will plot the absolute correlation result to visually assess whether the detection is reliable. If the maximum value stands out clearly from the rest of the correlation, it means a strong and well-defined match has been found. However, if the peak does not stand out much, or if there are multiple peaks of similar value, the result may not be entirely reliable.
 
@@ -516,7 +514,7 @@ Now we can search for the maximum value of the correlation, and the position of 
 	\caption{Diagram of the architecture of the Delay page}
 \end{figure}
 
-At the bottom of the page, I will add a “Pause / Resume” button and an “Apply” button, which saves the delay value in an object accessible to the other analysis pages. Once this parameter is saved, the other pages will automatically start applying the delay to their corresponding analyses.
+At the bottom of the page, will be added a “Pause / Resume” button and an “Apply” button, which saves the delay value in an object accessible to the other analysis pages. Once this parameter is saved, the other pages will automatically start applying the delay to their corresponding analyses.
 
 \begin{figure}[H]
 	\centering
@@ -526,14 +524,14 @@ At the bottom of the page, I will add a “Pause / Resume” button and an “Ap
 	\label{fig:Delay_page}
 \end{figure}
 
-Figure~\ref{fig:Delay_page} was captured using pink noise, with the microphone placed approximately 25 cm from the speaker, which corresponds to nearly 0.25 ms of delay.
+Figure~\ref{fig:Delay_page} was captured using pink noise, with the microphone placed approximately 25 cm from the speaker, which corresponds to nearly 0.75 ms of delay.
 
 
 \section{Acoustic correction}
 
 The acoustic correction is based on a \textbf{DSP} (\textit{Digital Signal Processor}) that processes the \textbf{External Input}, aiming to compensate for the imperfections of the analyzed system in order to improve the sound at the listening position. The processed signal is then sent through the \textbf{Output to System}.
 
-This processing is based on a 31-band graphic equalizer using the IEC 61260-defined bands, to ensure consistency with the analysis and with common industry solutions (as explained in the Analysis–RTA section).
+This processing is based on a 31-band filter bank equalizer using the IEC 61260-defined bands, to ensure consistency with the analysis and with common industry solutions (as explained in the Analysis–RTA section).
 
 Furthermore, it must be able to bypass the processing, in case the user just wants to hear the unprocessed signal. It should also be possible to stop the \textbf{Output to System}, acting as a mute option. To switch between these three states, instead of using separate pages, I implemented a single button that cycles through the “Stop”, “Bypass”, and “EQ” states.
 
@@ -554,7 +552,7 @@ A very important aspect of this page is that it must take the data saved from th
 
 When I was developing one of the first versions of the program, I did not use shared buffers—each page managed its own stream, directly reading data from the input stream, processing it as needed, and, if necessary, writing directly to the output stream. For example, this was the code used for the Bypass function at that time: it took data from the input stream, stored it in a temporary buffer used only for this function, and then wrote that buffer to the output stream.
 
-\begin{minted}[label=\texttt{ipython}]{python3}
+\begin{minted}[label=\texttt{old version of dsp.py}]{python3}
 	"""
 	Core part of the code for the Bypass functionality that was working correctly.
 	"""

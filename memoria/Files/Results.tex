@@ -34,7 +34,9 @@ For the final test, which involved a real-world scenario, I had the privilege of
 
 The sound card and the measurement microphone were kindly provided by \textit{IMESDE, Integració, Distribució i Enginyeria Escènica, S.L.}, a private company located in La Garriga, Spain. All the devices used can be seen in Figure~\ref{fig:Coro_setup}.
 
-The first step was to place the measurement microphone. It was important to choose a good position where the microphone could capture the sound from a single representative point in the room. The first parameter to define was the microphone height. This venue is very versatile throughout the week, and the seats can be removed. However, events held without the seats typically do not require the use of the theater's sound system. Therefore, it was more appropriate to take measurements with the seats in place. Unfortunately, on the day I was able to perform the measurements, the seats had been partially removed. Nevertheless, I positioned the microphone at the average height of a seated person, as shown in Figure~\ref{fig:Mic_pos1} and Figure~\ref{fig:Mic_pos2}.
+\subsection{Equipment placemant}
+
+The first step was to place the measurement microphone. It was important to choose a good position where the microphone could capture the sound from a single, representative point in the room. The first parameter to define was the microphone height. This venue is very versatile throughout the week, and the seats can be removed, which changes the acoustic environment. Additionally, the space is not properly acoustically treated, which introduces some acoustic issues. However, events held without the seats typically do not require the use of the theater's sound system. Therefore, it was more appropriate to take the measurements with the seats in place. Even though the seats had been partially removed, I positioned the microphone at the average height of a seated person, as shown in Figure~\ref{fig:Mic_pos1} and Figure~\ref{fig:Mic_pos2}.
 
 \begin{figure}[H]
 	\centering
@@ -128,13 +130,6 @@ In order to enable comparison between our software solution and the built-in too
 	\end{center}
 	\caption{System connection overview}
 \end{figure}
-
-I compared my system with two basic tools available on the \textit{X32} console:
-
-\begin{itemize}
-	\item \textbf{RTA (Real-Time Analysis):} Shown in Figure~\ref{fig:Coro_X32_nontreated}, this tool provides a real-time spectrum display of the \textbf{Input from System} signal. Although the underlying algorithm is unknown, it is visually the most similar tool to the RTA page in my program.
-	\item \textbf{Stereo GEQ (Graphic Equalizer):} A 31-band graphic EQ. Again, the specific algorithm used is not documented, but the concept is equivalent to the DSP window of the program.
-\end{itemize}
 
 Also, to avoid issues related to synchronization problems that cause the glitch effect in the Bypass and EQ modules of the \textbf{RTA+C} program, I will be taking measurements using the Bypass option of the \textbf{X32} console, which works flawlessly.
 
@@ -245,15 +240,7 @@ In Figure~\ref{fig:Coro_FT_time_av}, a time average is applied, which greatly im
 
 With all averaging options applied, we obtain the result shown in Figure~\ref{fig:Coro_FT_av}. While we lose considerable resolution in the low-frequency range, the high-frequency representation becomes much more visually understandable.
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.8
-	\linewidth]{Figures/Coro_X32_nontreated.jpeg}
-	\caption{X32 RTA Tool with Untreated Input from System Signal}
-	\label{fig:Coro_X32_nontreated}
-\end{figure}
-
-To check whether the results are reasonably close to reality, we use the \textbf{X32} RTA tool as a reference and compare it with the \textbf{Input from System} analysis. As shown in Figure~\ref{fig:Coro_X32_nontreated}, and comparing it with the FT page of the RTA+C program (see previous figures), the results look very similar—especially the dip between 1000 Hz and 4000 Hz. Therefore, I consider that the FT page works pretty well.
+\subsection{FT-----------------------------------------------}
 
 Next step: open the RTA page.
 
@@ -279,17 +266,7 @@ Considering these results satisfactory, I saved the \textbf{System Gain} values 
 
 Once the \textbf{DSP} window is opened, since the values from the RTA were previously saved, it automatically loads with the \textit{Analysis Values} imported with inverted sign (to apply correction, we need to compensate the analysis values, which is done by inverting their sign). If we overwrite the saved ones, or if there were no values when this page was first opened, it is possible to import the latest saved values using the \textit{Refresh} button. Then, simply press \textit{Apply Analysis values} to send them to the \textbf{EQ} modules. At this point, the page is configured as shown in Figure~\ref{fig:Coro_EQ_RTA+C}. Additionally, it is also possible to manually enter values; in that case, pressing the \textit{Apply Manual values} button will activate them.
 
-At this point, I deactivated the \textbf{X32} Bypass to activate the EQ module from the RTA+C program with the applied values. Luckily, with pink noise, the glitch effect is almost unnoticeable.
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.8
-	\linewidth]{Figures/Coro_X32_treatedRTAc.jpeg}
-	\caption{X32 RTA tool with Treated Input form System Signal}
-	\label{fig:Coro_X32_RTA+C}
-\end{figure}
-
-First, I took a look at the \textbf{X32} RTA tool, shown in Figure~\ref{fig:Coro_X32_RTA+C}, to compare it with the non-correction applied results from Figure~\ref{fig:Coro_X32_nontreated}. Clearly, the graph looks flatter, which indicates that the correction is working properly and yielding good results. It’s not perfect, but the dip between 1000 and 4000 Hz has improved significantly.
+At this point, I deactivated the \textbf{X32} Bypass to activate the EQ module from the RTA+C program with the applied values. With pink noise, the glitch effect is almost unnoticeable.
 
 \begin{figure}[H]
 	\centering
@@ -300,6 +277,42 @@ First, I took a look at the \textbf{X32} RTA tool, shown in Figure~\ref{fig:Coro
 \end{figure}
 
 Then, I looked at the RTA module page from \textbf{RTA+C}, shown in Figure~\ref{fig:Coro_RTA_RTA+C}, and the results looked very promising. The plot appeared much flatter compared to previous measurements, which indicates that the EQ module is functioning correctly. This also confirms that using the same filters for both analysis and processing was a good design choice. What remains pending is further research and the implementation of improved filters to achieve a more natural and realistic representation of the real acoustic response.
+
+\subsection{Comparison with reference equipment}
+
+I compared my system with two basic tools available on the \textit{X32} console:
+
+\begin{itemize}
+	\item \textbf{RTA (Real-Time Analysis):} Shown in Figure~\ref{fig:Coro_X32_nontreated}, this tool provides a real-time spectrum display of the \textbf{Input from System} signal. Although the underlying algorithm is unknown, it is visually the most similar tool to the RTA page in my program.
+	\item \textbf{Stereo GEQ (Graphic Equalizer):} A 31-band graphic EQ. Again, the specific algorithm used is not documented, but the concept is equivalent to the DSP window of the program.
+\end{itemize}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_X32_nontreated.jpeg}
+	\caption{X32 RTA Tool with Untreated Input from System Signal}
+	\label{fig:Coro_X32_nontreated}
+\end{figure}
+--------------------------------------------------------------------
+
+To check whether the results are reasonably close to reality, we use the \textbf{X32} RTA tool as a reference and compare it with the \textbf{Input from System} analysis. As shown in Figure~\ref{fig:Coro_X32_nontreated}.
+
+---------------------------------------------------------------------
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_X32_treatedRTAc.jpeg}
+	\caption{X32 RTA tool with Treated Input form System Signal}
+	\label{fig:Coro_X32_RTA+C}
+\end{figure}
+
+-----------------------------------------------------------------------
+
+First, I took a look at the \textbf{X32} RTA tool, shown in Figure~\ref{fig:Coro_X32_RTA+C}, to compare it with the non-correction applied results from Figure~\ref{fig:Coro_X32_nontreated}. Clearly, the graph looks flatter, which indicates that the correction is working properly and yielding good results. It’s not perfect, but the dip between 1000 and 4000 Hz has improved significantly.
+
+--------------------------------------------------------------------------
 
 \begin{figure}[H]
 	\centering
