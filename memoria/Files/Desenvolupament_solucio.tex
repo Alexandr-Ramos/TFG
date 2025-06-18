@@ -1,8 +1,20 @@
 \chapter{Development of the chosen solutions}
 
-Explicar, enumerar els apartas del capítol -----------------------------------------------------------------------------------------------------------------------
 
-The developed solution will be published in a GitHub repository \cite{git}
+This chapter explains in detail the features that have been developed as part of the final software solution. The development was based on requirements discussed in the previous \textbf{Methodology, consideration and decision on alterantive solutions} chapter, ensuring consistency between the initial objectives and the final implementation. Each part of the system has been built with modularity, extensibility, and usability in mind, aiming to provide a flexible and robust platform for real-time acoustic analysis and correction.
+
+The content is organized into the following sections:
+
+\begin{itemize}
+	\item \textbf{Graphic Interface}, which presents the user-facing components and defines how the user interacts with the system.
+	\item \textbf{Signal Path}, where the structure and flow of data between modules are described.
+	\item \textbf{Settings Window}, which includes both the Device Settings and Audio Settings pages, used to configure hardware and sampling parameters.
+	\item \textbf{Acoustic Analysis}, which describes the window containing all implemented analysis tools: Spectrogram (FT), RTA, and Delay pages.
+	\item \textbf{Acoustic Correction}, which covers the DSP window where the core processing takes place, including a Bypass control and a 31-band Equalizer.
+	\item \textbf{Future Work}, which includes tools planned for future implementation.
+\end{itemize}
+
+And the software will be published in a GitHub repository, accessible through the referenced link \cite{git}.
 
 \section{Graphic interface}
 
@@ -98,7 +110,7 @@ Finally, even though Tkinter offers a default way to close windows using the "X"
 
 
 
-\section{Signal Path}
+\section{Signal path}
 
 To perform any kind of analysis or signal processing, the first thing we need is data—more specifically, signal data captured from the sound card. This data is sent to different modules so that each one can carry out its specific task. Additionally, in the case of the correction module, it is necessary to send output data back to the sound card (the corrected signal). Furthermore, there will be non-signal data containing the results of the analysis, which will be sent to the DSP (\textit{Digital Signal Processor}) or the correction window.
 
@@ -179,7 +191,7 @@ Once the streams are running and managed from the root window, we need to handle
 	\caption{Stream management}
 \end{figure}
 
-\section{Settings page}
+\section{Settings window}
 
 In order to be flexible with hardware, we need a settings window where we can tell the program which sound card, which channel, and which parameters we want to use. These parameters will also affect the resolution and fidelity of the analysis and processing, according to the sound card’s capabilities.
 
@@ -189,7 +201,7 @@ The settings window will be split into two pages:
 	\item \textbf{Audio Settings:} Where we can define which audio parameters we want to use.
 \end{itemize}
 
-\subsection{Device Settings}
+\subsection{Device settings}
 
 The Sounddevice library will be used to identify which sound cards and channels are available, and filter them into inputs and outputs. Then, using a questionnaire-style interface, I will let the user select which sound card and which channel they want for each required signal using a dropdown menu.
 
@@ -203,7 +215,7 @@ At the bottom of the page, there will be a "Confirm" button that performs some b
 	\label{fig:Device Settings}
 \end{figure}
 
-\subsection{Audio Settings}
+\subsection{Audio settings}
 
 On this page, just like in the previous one, I will use a questionnaire-style interface with dropdown menus to define the Sample Rate, Bit Depth, and Block Size to be used.
 
@@ -275,7 +287,7 @@ All signal and analysis algorithms are implemented using the \textbf{NumPy}\cite
 
 In studio or live sound situations, a spectrogram shows the energy of different frequencies over time using \textbf{FT} (\textit{Fourier Transform}), displayed in the audible range (between 20 Hz and 20 kHz), and sometimes slightly extended beyond.
 
-In my case, as a starting point, I’m using \texttt{numpy.fft.rfft}, which is the \textbf{RFFT} (\textit{Real Fast Fourier Transform}) function from the NumPy library. It is an efficient variation of the \textbf{FFT} (\textit{Fast Fourier Transform}) designed for real-valued input signals.
+As a starting point, It is used \texttt{numpy.fft.rfft}, which is the \textbf{RFFT} (\textit{Real Fast Fourier Transform}) function from the NumPy library. It is an efficient variation of the \textbf{FFT} (\textit{Fast Fourier Transform}) designed for real-valued input signals.
 
 In order to achieve good resolution, the processing block size on this page is independent of the one set in the settings pages. It uses at least 100 ms of data (more precisely, the next power-of-two number of samples equivalent to 100 ms). This provides a minimum frequency resolution of 10 Hz, as given by
 (\ref{eq:delta-f}):
@@ -625,6 +637,6 @@ Also, the user-level data is in logarithmic scale, and to apply it to a gain sta
 Most of the GUI is focused on this module. As shown in Figure~\ref{fig:DSP_page}, where user can refresh to load the data saved from the RTA analysis, apply those values, or manually define and apply their own values.
 
 
-\section{Future Work}
+\section{Future work}
 
 There is a list of additional tools that still need to be implemented, such as phase analysis, RT60 measurement, waterfall diagram, and others. Additionally, it would be advisable to refine some of the already implemented tools — for example, by applying proper filter design to obtain more adequate filters for the RTA page and EQ module, or by improving the GUI.
