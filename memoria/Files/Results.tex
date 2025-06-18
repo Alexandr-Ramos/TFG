@@ -8,7 +8,7 @@ During the process, several unexpected difficulties arose. While some features r
 \begin{itemize}
 	\item \textbf{GUI freeze:} Occasionally, the interface freezes when switching between pages in the analysis window. Debugging efforts have shown that the program continues to run in the background, but the graphical interface becomes completely unresponsive, leaving no option but to force quit and restart the program.
 	
-	\item \textbf{Output to System Glitch:} It renders the Bypass and EQ modules nearly unusable in real-time situations, as it introduces a glitch effect in the Output to System signal. After conducting various tests, is concluded that the problem likely stems either from how data is managed within the DSP window or from how this window interacts with the output stream. The glitch appears to be caused by repeating or skipping certain data blocks in the output stream. When the program is configured with a very large block size, it becomes clearly audible that some blocks are played more than once, while others are skipped entirely.
+	\item \textbf{Output to System Glitch:} It renders the Bypass and EQ modules nearly unusable in real-time situations, as it introduces a glitch effect in the Output to System signal. After conducting various tests, is concluded that the problem likely stems either from how data is managed within the DSP window or from how this window interacts with the output stream. The glitch appears to result in the repetition or skipping of certain data blocks in the output stream. When the program is configured with a very large block size, it becomes clearly audible that some blocks are played more than once, while others are skipped entirely.
 \end{itemize}
 
 Another minor issue is:
@@ -57,7 +57,7 @@ The first step was to place the measurement microphone. It was important to choo
 	\label{fig:Mic_pos2}
 \end{figure}
 
-Next, the microphone had to be placed at a representative point in the room. Since I was measuring only one speaker and the program operates in mono, the position had to be one where the speaker had good coverage and where the microphone was as close as possible to the center of the audience area. I decided to place the microphone approximately halfway through the depth of the room. Starting from a position where the speaker was directly in front of the microphone, I shifted it slightly to the right to bring it closer to the actual center of the room. As shown on figure~\ref{fig:Mic_pos3} and figure~\ref{fig:Floor_section}.
+Next, the microphone had to be placed at a representative point in the room. Since only one speaker was being measured and the program operates in mono, the position had to be one where the speaker had good coverage and where the microphone was as close as possible to the center of the audience area. It was decided to place the microphone approximately halfway through the depth of the room. Starting from a position where the speaker was directly in front of the microphone, it was shifted slightly to the right to bring it closer to the actual center of the room. As shown on figure~\ref{fig:Mic_pos3} and figure~\ref{fig:Floor_section}.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.8
@@ -95,7 +95,7 @@ Once the microphone was positioned, next step is set up the rest of the equipmen
 	\label{fig:Coro_setup}
 \end{figure}
 
-In order to enable comparison between our software solution and the built-in tools of the digital mixing console (\textit{X32}), all signals must be routed through the \textit{X32}, as it offers advanced routing and distribution capabilities. Additionally, the console must be properly configured to route the signals correctly. Remember that we are using the \textit{EVO 4} as the audio interface for the RTA+C software, as shown in the following connection diagram.
+In order to enable comparison between our software solution and the built-in tools of the digital mixing console (\textit{X32}), all signals must be routed through the \textit{X32}, as it offers advanced routing and distribution capabilities. Additionally, the console must be properly configured to route the signals correctly. Remember that the \textit{EVO 4} is being used as the audio interface for the RTA+C software, as shown in the following connection diagram.
 
 \begin{figure}[H]
 	\begin{center}
@@ -219,7 +219,7 @@ When the \textbf{DSP} window is opened, since the values from the RTA were previ
 	\label{fig:Coro_RTA_RTA+C}
 \end{figure}
 
-Lastly, looking at the RTA module page from \textbf{RTA+C}, shown in Figure~\ref{fig:Coro_RTA_RTA+C}, shows a very promising results. The plot appeared much flatter compared to previous measurements, which indicates that the EQ module is functioning correctly. This also confirms that using the same filters for both analysis and processing was a good design choice.
+Lastly, looking at the RTA  page from \textbf{RTA+C}, shown in Figure~\ref{fig:Coro_RTA_RTA+C}, shows a very promising results. The plot appeared much flatter compared to previous measurements, which indicates that the EQ module is functioning correctly. This also confirms that using the same filters for both analysis and processing was a good design choice.
 
 \subsection{Comparison with reference equipment}
 
@@ -310,7 +310,7 @@ With all averaging options applied, we obtain the result shown in Figure~\ref{fi
 
 \subsection{Test using music}
 
-As I was testing a software solution intended to work properly in live situations, for the final test I replaced the pink noise with music.
+As the software solution—intended to operate reliably in live situations—was being tested, the pink noise was replaced with music for the last test.
 
 \begin{figure}[H]
 	\centering
@@ -328,7 +328,7 @@ As I was testing a software solution intended to work properly in live situation
 	\label{fig:Coro_FT_music}
 \end{figure}
 
-Using music and ignoring the glitch issue, I obtained the results shown in Figures~\ref{fig:Coro_RTA_music} and~\ref{fig:Coro_FT_music}. It was necessary to apply some averaging to make the results more understandable. Even so, the system performed quite well: although both the \textbf{External Input} and \textbf{Input from System} signals are constantly changing, the System Gain plots show only minor variations— which makes sense, since the analyzed system remains unchanged despite the music content varying. Moreover, because these signals are synchronized using the delay adjustment, the averaged results from different signal frames consistently represent the same slice of music.
+Using music and ignoring the glitch issue, the results shown in Figures~\ref{fig:Coro_RTA_music} and~\ref{fig:Coro_FT_music} were obtained. It was necessary to apply some averaging to make the results more understandable. Even so, the system performed quite well: although both the \textbf{External Input} and \textbf{Input from System} signals are constantly changing, the System Gain plots show only minor variations— which makes sense, since the analyzed system remains unchanged despite the music content varying. Moreover, because these signals are synchronized using the delay adjustment, the averaged results from different signal frames consistently represent the same slice of music.
 
 This functionality is designed to be used in live situations with changing environmental conditions. It allows measurements to be taken during a show and enables real-time adjustments to be applied to the DSP module. Overall, it performs effectively in this context.
 

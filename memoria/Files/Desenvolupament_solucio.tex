@@ -22,7 +22,7 @@ One important point is to provide a GUI (\textit{Graphical User Interface}) that
 
 As Tkinter works, all actions that need to be triggered or modified through user interaction must be handled inside a function. Therefore, the way this library operates is by calling predefined functions in response to any user interaction.
 
-First, we need to define the graphical architecture, where each module will be integrated into the graphical user interface. Since the program functions as a set of tools, we must define where each tool will be placed within the interface.
+First, it is necessaty to define the graphical architecture, where each module will be integrated into the graphical user interface. Since the program functions as a set of tools, it is essential to define where each tool will be placed within the interface.
 
 These tools can be divided into two important groups, which will also correspond to two separate windows accessible from the root window:
 
@@ -193,17 +193,17 @@ Once the streams are running and managed from the root window, we need to handle
 
 \section{Settings window}
 
-In order to be flexible with hardware, we need a settings window where we can tell the program which sound card, which channel, and which parameters we want to use. These parameters will also affect the resolution and fidelity of the analysis and processing, according to the sound card’s capabilities.
+In order to be flexible with hardware, it is necessary a settings window where it can tell the program which sound card, which channel, and which parameters we want to use. These parameters will also affect the resolution and fidelity of the analysis and processing, according to the sound card’s capabilities.
 
 The settings window will be split into two pages:
 \begin{itemize}
-	\item \textbf{Device Settings:} Where we can define which sound card and which channels we want to use.
-	\item \textbf{Audio Settings:} Where we can define which audio parameters we want to use.
+	\item \textbf{Device Settings:} Where the user can define which sound card and which channels want to use.
+	\item \textbf{Audio Settings:} Where the user can define which audio parameters want to use.
 \end{itemize}
 
 \subsection{Device settings}
 
-The Sounddevice library will be used to identify which sound cards and channels are available, and filter them into inputs and outputs. Then, using a questionnaire-style interface, I will let the user select which sound card and which channel they want for each required signal using a dropdown menu.
+The Sounddevice library will be used to identify which sound cards and channels are available, and filter them into inputs and outputs. Then, using a questionnaire-style interface, the user is allowed to select which sound card and which channel they want for each required signal using a dropdown menu.
 
 At the bottom of the page, there will be a "Confirm" button that performs some basic checks, such as verifying that the "external input" and the "input from system" are not the same input channel. Then, it will display a green message if the settings are applied successfully, or a red one if something goes wrong. Finally, it will update the values and labels on the root window to indicate which channels are currently selected.
 
@@ -217,9 +217,9 @@ At the bottom of the page, there will be a "Confirm" button that performs some b
 
 \subsection{Audio settings}
 
-On this page, just like in the previous one, I will use a questionnaire-style interface with dropdown menus to define the Sample Rate, Bit Depth, and Block Size to be used.
+On this page, just like in the previous one, a questionnaire-style interface will be used with dropdown menus to define the Sample Rate, Bit Depth, and Block Size.
 
-For the Sample Rate and Bit Depth, I will suggest the most common values — such as 44,100 Hz, 48,000 Hz, 96,000 Hz, and 192,000 Hz for the sample rate, and 16, 24, and 32 bits for bit depth. However, the user is free to enter any value. The same applies to the Block Size.
+For the Sample Rate and Bit Depth, will be suggested the most common values — such as 44,100 Hz, 48,000 Hz, 96,000 Hz, and 192,000 Hz for the sample rate, and 16, 24, and 32 bits for bit depth. However, the user is free to enter any value. The same applies to the Block Size.
 
 At the bottom of the page, there is also a "Confirm" button, similar to the one in the "Device Settings" page. It performs basic checks, updates the selected values, and displays a message: green if everything is OK, orange in case of a warning (it applies the changes but alerts the user when a non-recommended or uncommon value is entered), and red if the Block Size is not a power of two — something required for the algorithms to work properly.
 
@@ -297,9 +297,9 @@ In order to achieve good resolution, the processing block size on this page is i
 	\Delta f = \frac{1}{T}
 \end{equation}
 
-But before starting the calculations, we first need to prepare the input data through two processes.
+But before starting the calculations, it is necessary to prepare the input data through two processes.
 
-First, we have to delay the \textit{External Input} signal to match it with the \textit{Input from System} signal. This is managed using a set of instructions that operate on the delay buffer. Also, if there is not enough data to apply the required delay, the system waits for the next iteration.
+First, it has to be delayed the \textit{External Input} signal to match it with the \textit{Input from System} signal. This is managed using a set of instructions that operate on the delay buffer. Also, if there is not enough data to apply the required delay, the system waits for the next iteration.
 
 \begin{minted}[label=\texttt{analysis.py}]{python3}
 """
@@ -318,13 +318,13 @@ if ext_data is None or len(ext_data) < N_FFT:
 	return	
 \end{minted}
 
-Secondly, I apply a windowing process to the acquired data in order to obtain more pleasant and understandable results to display. It is true that this kind of process slightly alters the final results, but in this case, it can help to better identify peaks that stand out—indicating possible resonances—and valleys, which can indicate cancellations, extra absorption, or a lack of energy in certain frequencies.
+Secondly, is being applied a windowing process to the acquired data in order to obtain more pleasant and understandable results to display. It is true that this kind of process slightly alters the final results, but in this case, it can help to better identify peaks that stand out—indicating possible resonances—and valleys, which can indicate cancellations, extra absorption, or a lack of energy in certain frequencies.
 
-After trying several different window functions, I decided to use a \textit{Blackman} window, implemented with the \texttt{numpy.blackman} function from the \textbf{NumPy} library.
+After trying several different window functions, it was decided to use a \textit{Blackman} window, implemented with the \texttt{numpy.blackman} function from the \textbf{NumPy} library.
 
-After the FT calculations, I apply an averaging algorithm that can be performed either over time or over frequency. Time averaging is particularly useful when using non-varying sounds for frequency analysis to excite the system—for example, constant pink noise—allowing more stable and defined results.
+And after the FT calculations, it was applied an averaging algorithm that can be performed either over time or over frequency. Time averaging is particularly useful when using non-varying sounds for frequency analysis to excite the system—for example, constant pink noise—allowing more stable and defined results.
 
-Frequency averaging, on the other hand, is useful when analyzing the high-frequency range. In order to achieve good resolution in the low-frequency range, we often end up with unnecessarily high resolution in the high frequencies, since the data is displayed on a logarithmic scale. Therefore, if the user wants to focus on the high-frequency range, reducing the resolution through frequency averaging can make the visualization clearer and easier to interpret.
+Frequency averaging, on the other hand, is useful when analyzing the high-frequency range. In order to achieve good resolution in the low-frequency range, often it ends up with unnecessarily high resolution in the high frequencies, since the data is displayed on a logarithmic scale. Therefore, if the user wants to focus on the high-frequency range, reducing the resolution through frequency averaging can make the visualization clearer and easier to interpret.
 
 The final step is calculate the difference between External Input analysis and Input from System analysis, in order to get frequency response of the system. This is done with a simple difference calculation of Analysis results.
 
@@ -413,20 +413,20 @@ On the other hand, this standard is widely used in many professional devices and
 	\centering
 	\includegraphics[width=1
 	\linewidth]{Figures/DBX_231s.png}
-	\caption[Image of the front panel of the DBX 231s]{Image of the front panel of the DBX 231s, where we can observe that the center frequency bands are the same as those defined in IEC 61260. Extracted form \cite{DBX_31s}}
+	\caption[Image of the front panel of the DBX 231s]{Image of the front panel of the DBX 231s, where it can be observed that the center frequency bands are the same as those defined in IEC 61260. Extracted form \cite{DBX_31s}}
 	\label{fig:DBX_31s}
 \end{figure}
 
-In order to achieve the greatest possible compatibility and coherence with industry standards, I prefer to use the IEC 61260 standard.
+In order to achieve the greatest possible compatibility and coherence with industry standards, it is prefered to use the IEC 61260 standard.
 
 
 The signal path on this page is very similar to the one used on the "FT" page. We have a buffer with two blocks of input data ("Input from external device" and "Input from system").
 
 First, we copy the buffer data to the "delay buffer", where, if needed, the data will be adjusted to make it coincide with the applied delay. If necessary, the adjustment will use data from previous blocks stored in the same "delay buffer".
 
-I created this buffer with the capacity to store 1 second of data, which can be used to apply a maximum delay of (1 - "Block Size in seconds") seconds.
+It was created this buffer with the capacity to store 1 second of data, which can be used to apply a maximum delay of (1 - Block Size in seconds) seconds.
 
-Once the data in the "delay buffer" is adjusted, we can start applying algorithms to perform the analysis.
+Once the data in the delay buffer is adjusted, we can start applying algorithms to perform the analysis.
 
 The algorithm is based on the calculation of RMS (\textit{root mean square} \ref{eq:RMS}) to obtain the energy for each frequency band, which is divided using filters for each band.
 
@@ -459,7 +459,7 @@ The algorithm is based on the calculation of RMS (\textit{root mean square} \ref
 \end{figure}
 
 
-In this case, I'm not using any kind of windowing. As a starting point, I'm using 4th-order IIR (\textit{infinite impulse response}) Butterworth band-pass filters for each band. All these filters are created using the \texttt{scipy.signal} library \cite{scipy_signal}, which returns SOS (\textit{Second-Order Section}) parameters, given by \ref{eq:SOS}.
+In this case, windowing is not used. As a starting point, it is used 4th-order IIR (\textit{infinite impulse response}) Butterworth band-pass filters for each band. All these filters are created using the \texttt{scipy.signal} library \cite{scipy_signal}, which returns SOS (\textit{Second-Order Section}) parameters, given by \ref{eq:SOS}.
 
 \begin{equation}
 	\label{eq:SOS}
@@ -486,7 +486,7 @@ At the end, there is: a pause button, which blocks the update function and can b
 
 \subsection{Delay}
 
-Usually, all systems introduce some delay, primarily caused by the travel time of sound between the speaker and the microphone. However, additional subsystems can also contribute to further delay. In cases where we want to perform analysis in a live situation with music (for example, measuring during a live show), where the excitation signal is not time-invariant in terms of frequency content, it is crucial to synchronize both inputs of the program in order to obtain an accurate representation from the analysis.
+Usually, all systems introduce some delay, primarily caused by the travel time of sound between the speaker and the microphone. However, additional subsystems can also contribute to further delay. In cases where it is desired to perform analysis in a live situation with music (for example, measuring during a live show), where the excitation signal is not time-invariant in terms of frequency content, it is crucial to synchronize both inputs of the program in order to obtain an accurate representation from the analysis.
 
 As explained in the FT and RTA pages, this synchronization is achieved using a dedicated buffer that allows shifting samples to align the signals. However, this mechanism needs to know how many samples the \textbf{External Input} must be delayed in order to compensate for the delay introduced by the system (\textbf{Input from System}). The main goal of this page is to calculate that delay value.
 
@@ -498,9 +498,9 @@ For this purpose, a cross-correlation algorithm \ref{eq:cor} is applied to both 
 \end{equation}
 
 
-Once the correlation is obtained, I apply the absolute value to all results to eliminate the effect of possible polarity inversion introduced by the system (since an inverted signal would produce a negative correlation value). Then, I discard results corresponding to delays shorter than -10 ms. In the types of systems this program id designed to analyze, negative delays are physically impossible, as they would imply predicting a future signal. However, I allow a small negative range to help detect potential issues in case something goes wrong.
+Once the correlation is obtained, I apply the absolute value to all results to eliminate the effect of possible polarity inversion introduced by the system (since an inverted signal would produce a negative correlation value). Then, I discard results corresponding to delays shorter than -10 ms. In the types of systems this program is designed to analyze, negative delays are physically impossible, as they would imply predicting a future signal. However, a small negative range was allowed to help detect potential issues in case something goes wrong.
 
-Now we can search for the maximum value of the correlation, and the position of this maximum will indicate the number of samples to delay. The result will be labeled both in samples and in the equivalent milliseconds. Additionally, I will plot the absolute correlation result to visually assess whether the detection is reliable. If the maximum value stands out clearly from the rest of the correlation, it means a strong and well-defined match has been found. However, if the peak does not stand out much, or if there are multiple peaks of similar value, the result may not be entirely reliable.
+The maximum value of the correlation can now be identified, and the position of this maximum will indicate the number of samples to delay. The result will be labeled both in samples and in the equivalent milliseconds. Additionally, it will be ploted the absolute correlation result to visually assess whether the detection is reliable. If the maximum value stands out clearly from the rest of the correlation, it means a strong and well-defined match has been found. However, if the peak does not stand out much, or if there are multiple peaks of similar value, the result may not be entirely reliable.
 
 \begin{figure}[H]
 	\begin{center}
