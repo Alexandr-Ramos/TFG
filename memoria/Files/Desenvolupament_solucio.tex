@@ -533,7 +533,7 @@ The acoustic correction is based on a \textbf{DSP} (\textit{Digital Signal Proce
 
 This processing is based on a 31-band filter bank equalizer using the IEC 61260-defined bands, to ensure consistency with the analysis and with common industry solutions (as explained in the Analysis–RTA section).
 
-Furthermore, it must be able to bypass the processing, in case the user just wants to hear the unprocessed signal. It should also be possible to stop the \textbf{Output to System}, acting as a mute option. To switch between these three states, instead of using separate pages, I implemented a single button that cycles through the “Stop”, “Bypass”, and “EQ” states.
+Furthermore, it must be able to bypass the processing, in case the user just wants to hear the unprocessed signal. It should also be possible to stop the \textbf{Output to System}, acting as a mute option. To switch between these three states, instead of using separate pages, will be implemented a single button that cycles through the “Stop”, “Bypass”, and “EQ” states.
 
 As the output stream is almost always active and continuously reads data from the output buffer, the “Stop” state is implemented by simply writing zeros to the output buffer. In fact, zeros are also the default content of the buffer.
 
@@ -550,27 +550,7 @@ A very important aspect of this page is that it must take the data saved from th
 
 \subsection{Bypass}
 
-When I was developing one of the first versions of the program, I did not use shared buffers—each page managed its own stream, directly reading data from the input stream, processing it as needed, and, if necessary, writing directly to the output stream. For example, this was the code used for the Bypass function at that time: it took data from the input stream, stored it in a temporary buffer used only for this function, and then wrote that buffer to the output stream.
-
-\begin{minted}[label=\texttt{old version of dsp.py}]{python3}
-	"""
-	Core part of the code for the Bypass functionality that was working correctly.
-	"""
-	
-	indata, _ = input_stream.read(block_size.get())
-	buffer[:] = indata[:, ext_in_ch.get() - 1]
-	out_block = np.zeros((block_size.get(), output_stream.channels), dtype='float32')
-	out_block[:, out_to_sys_ch.get() - 1] = buffer
-	output_stream.write(out_block)
-\end{minted}
-
-This meant that every tool or page had to have its own input and output stream. However, while implementing the Bypass feature, I quickly realized that I couldn't use different streams simultaneously for the same physical input or output channels (for example, Bypass and FT analysis at the same time), because the Sounddevice library does not allow this.
-
-Then, I switched to the current signal and path management approach, as explained earlier in the \textbf{Signal Path} section. I'm explaining this because this is the point where the Bypass functionality stopped working properly. The important issue that appeared will be discussed later in the \textbf{Results} chapter.
-
-Nevertheless, the new signal path allows the program to simultaneously have a working Bypass while updating the FT analysis.
-
-Specifically, the idea behind the Bypass is to take the shared input buffer and copy its data to the output buffer. This process, beyond displaying a label indicating that Bypass is active, does not require any additional GUI elements or feedback.
+The idea behind the Bypass is to take the shared input buffer and copy its data to the output buffer. This process, beyond displaying a label indicating that Bypass is active, does not require any additional GUI elements or feedback.
 
 \begin{figure}[H]
 	\begin{center}
@@ -596,14 +576,16 @@ Specifically, the idea behind the Bypass is to take the shared input buffer and 
 	\caption{Diagram of the architecture of the Bypass module}
 \end{figure}
 
-As an attempt to solve the issue that will be discussed in the \textbf{Results} chapter, I added and managed an \textbf{Intermediate Buffer}, but it did not lead to any results.
+Additionally, an \textbf{Intermediate Buffer} was added and managed to avoid certain issues.
 
 
 \subsection{31 Bars}
 
-This is the core of the DSP and uses the same set of filters as the RTA–Analysis page. First of all, it should be noted that it shares the same issue as the Bypass module. Nevertheless, I developed this module.
+This is the core of the DSP, which is responsible for equalizing the \textbf{External Input} signal. To do so, it uses the same set of filters as the RTA–Analysis page, with the same 31 bands defined by IEC 61260, in order to maintain maximum coherence between the two processes.
 
-An important aspect is that this module must take data from the RTA–Analysis page, or user-defined data, to set the gain for each band. This serves as the basis for correction, aiming to level and compensate the room’s frequency response. At the end, all filtered signal blocks with adjusted gains are written to the \textbf{Output Buffer}.
+An important aspect is that this module must take data either from the RTA–Analysis page or from user-defined input to set the gain for each band. This serves as the basis for correction, aiming to level and compensate systems frequency response.
+
+Finally, all filtered signal blocks with adjusted gains are written to the \textbf{Output Buffer}.
 
 \begin{figure}[H]
 	\begin{center}
@@ -632,11 +614,17 @@ An important aspect is that this module must take data from the RTA–Analysis p
 	\caption{Diagram of the architecture of the EQ module}
 \end{figure}
 
-Most of the GUI is focused on this module. As shown in Figure~\ref{fig:DSP_page}, the user can refresh to load the data saved from the RTA analysis, apply those values, or manually define and apply their own values.
+Also, the user-level data is in logarithmic scale, and to apply it to a gain stage, it is converted to linear data using the following equation~\ref{eq:log}:
+
+\begin{equation}
+	\label{eq:log}
+	G = 10^\frac{G(dB)}{20}
+\end{equation}
 
 
-\section{Others}
+Most of the GUI is focused on this module. As shown in Figure~\ref{fig:DSP_page}, where user can refresh to load the data saved from the RTA analysis, apply those values, or manually define and apply their own values.
 
-There is a list of additional tools that still need to be implemented, such as phase analysis, RT60 measurement, waterfall diagram, and others. Unfortunately, I had to invest much more time than expected solving bugs, errors, and various issues—most of them related to \textbf{GUI} and \textbf{Signal Path} management. Some of these issues are still not fully resolved, as discussed in the \textbf{Results} chapter.
 
-This left me without enough time to properly develop more advanced modules—especially in terms of researching and improving the filters used in the RTA and DSP modules—and to implement the remaining tools.
+\section{Future Work}
+
+There is a list of additional tools that still need to be implemented, such as phase analysis, RT60 measurement, waterfall diagram, and others. Additionally, it would be advisable to refine some of the already implemented tools — for example, by applying proper filter design to obtain more adequate filters for the RTA page and EQ module, or by improving the GUI.
