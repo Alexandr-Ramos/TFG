@@ -1,6 +1,5 @@
 \chapter*{Abstract}
-\addcontentsline{toc}{chapter}{Abstract}
-
+\addcontentsline{toc}{chapter}{Abstract / Resum}
 
 %\textit{Text breu (entre 250 a 500 paraules) en què s'informa del contingut i la naturalesa del treball, on s'hi fan constar especialment els objectius, els mètodes, els resultats i les conclusions del treball. El resum ha de ser en català o castellà i anglès.}
 
@@ -15,3 +14,22 @@
 \textit{Throughout the development, special attention is given to flexibility and accessibility. The software is intended to run on standard hardware under Linux (specifically Ubuntu 22.04.5 LTS), making it usable in both professional and home studio environments.}
 
 \textit{Finally, the project reflects on the difficulties encountered during development, acknowledging that not all objectives have been fully achieved. It discusses the main technical and practical challenges, and offers constructive criticism to guide future iterations. Despite these limitations, the result is a solid foundation on which to build. While the tool is not yet fully functional, it provides a working base from which the missing features can be implemented and the existing ones improved.}
+
+\vspace{1em}
+
+\let\origclearpage\clearpage
+\let\clearpage\relax
+\chapter*{Resum}
+%\addcontentsline{toc}{chapter}{Abstract / Resum}
+
+\textit{Aquest projecte aborda un repte habitual entre enginyers i tècnics de so: l'ajust dels sistemes d'àudio segons les propietats acústiques de l'entorn. Tot i que existeixen solucions comercials amb eines d'anàlisi avançades, aquest treball proposa el desenvolupament d’una alternativa personalitzada, basada en programari lliure i tecnologies de codi obert.}
+
+\textit{La solució proposada s'ha implementat en Python i està dissenyada per dur a terme anàlisi i correcció acústica en temps real. Integra diverses biblioteques científiques, com NumPy i SciPy per al processament de senyals, i utilitza Sounddevice per a l’entrada i sortida d’àudio en temps real. El programa interactua amb l'entorn mitjançant una configuració bàsica de maquinari que inclou un micròfon, un altaveu i una targeta de so.}
+
+\textit{S'ha desenvolupat una interfície gràfica d'usuari amb Tkinter i Matplotlib per garantir la facilitat d’ús i una interacció intuïtiva. Aquesta interfície permet configurar paràmetres d’àudio, seleccionar canals d’entrada, visualitzar dades i monitoritzar el comportament del sistema en temps real. Entre les funcionalitats disponibles hi ha la transformada de Fourier, el processament basat en filtres i eines de mesura com l’anàlisi de retard, fase i resposta en freqüència.}
+
+\textit{Al llarg del desenvolupament s’ha posat un èmfasi especial en la flexibilitat i l’accessibilitat. El programari està pensat per funcionar en maquinari estàndard amb Linux (concretament Ubuntu 22.04.5 LTS), fet que el fa apte tant per a entorns professionals com per a estudis domèstics.}
+
+\textit{Finalment, el projecte reflexiona sobre les dificultats trobades durant el desenvolupament, reconeixent que no s’han assolit tots els objectius plantejats. S’hi discuteixen els principals reptes tècnics i pràctics, i s’hi aporta una crítica constructiva per guiar futures iteracions. Malgrat aquestes limitacions, el resultat és una base sòlida sobre la qual continuar treballant. Encara que l’eina no és completament funcional, proporciona una estructura operativa que permet afegir les funcionalitats pendents i millorar les existents.}
+
+\let\clearpage\origclearpage
