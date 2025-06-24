@@ -1,0 +1,15 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{Function that closes the root window and, as a consequence, the entire program.}
+\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{c+c1}{\PYGZsh{} Close all}
+\PYG{k}{def} \PYG{n+nf}{on\PYGZus{}close\PYGZus{}all}\PYG{p}{():}
+	\PYG{n}{config}\PYG{o}{.}\PYG{n}{update\PYGZus{}enabled} \PYG{o}{=} \PYG{k+kc}{False} \PYG{c+c1}{\PYGZsh{} Prevent all periodic updates}
+	\PYG{n}{stop\PYGZus{}global\PYGZus{}stream}\PYG{p}{()}  \PYG{c+c1}{\PYGZsh{} Ensure the stream is stopped}
+
+	\PYG{n}{time}\PYG{o}{.}\PYG{n}{sleep}\PYG{p}{(}\PYG{l+m+mf}{0.5}\PYG{p}{)}
+	\PYG{n}{root}\PYG{o}{.}\PYG{n}{destroy}\PYG{p}{()}
+
+\PYG{n}{root}\PYG{o}{.}\PYG{n}{protocol}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}WM\PYGZus{}DELETE\PYGZus{}WINDOW\PYGZdq{}}\PYG{p}{,} \PYG{n}{on\PYGZus{}close\PYGZus{}all}\PYG{p}{)}	
+\end{Verbatim}

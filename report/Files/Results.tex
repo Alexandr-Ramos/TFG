@@ -1,0 +1,334 @@
+\chapter{Results}
+
+
+\section{Drawbacks}
+
+During the process, several unexpected difficulties arose. While some features remain to be implemented, as discussed in a previous section (\textit{Future Work}), this part focuses on a few existing issues that still need to be addressed. The most relevant ones are:
+
+\begin{itemize}
+	\item \textbf{GUI freeze:} Occasionally, the interface freezes when switching between pages in the analysis window. Debugging efforts have shown that the program continues to run in the background, but the graphical interface becomes completely unresponsive, leaving no option but to force quit and restart the program.
+	
+	\item \textbf{Output to System Glitch:} It renders the Bypass and EQ modules nearly unusable in real-time situations, as it introduces a glitch effect in the Output to System signal. After conducting various tests, is concluded that the problem likely stems either from how data is managed within the DSP window or from how this window interacts with the output stream. The glitch appears to result in the repetition or skipping of certain data blocks in the output stream. When the program is configured with a very large block size, it becomes clearly audible that some blocks are played more than once, while others are skipped entirely.
+\end{itemize}
+
+Another minor issue is:
+
+\begin{itemize}
+	
+	\item \textbf{User Limitations:} The graphical user interface (GUI) should be more intuitive and requires refinement to offer clearer options and a better representation of ongoing processes. Furthermore, it is necessary to implement more constraints to prevent misconfigurations or malfunctions. For example, since the program uses the Sounddevice library and handles both inputs through a single input stream, both channels must originate from the same sound card. However, the current version of the program still allows users to select different sound cards for each input channel—an option that should be restricted to avoid improper operation.
+		
+\end{itemize}
+
+\section{Advantages}
+
+Despite the drawbacks, the final result is a functional software-based solution that proves useful, as will be discussed in the next chapter (\textit{Final Test}) and provides a solid foundation for adding further functionalities. The current implementation already demonstrates the viability of the approach and opens the door to future improvements and extensions that could enhance performance, usability, and flexibility.
+
+\section{Final test}
+
+For the final test, which involved a real-world scenario, I had the privilege of accessing professional equipment and a real theater. The venue was the \textbf{Teatre del Coro}, located in Sentmenat, Spain, and managed by the non-profit cultural association \textit{Societat Coral Obrera la Gloria Sentmenatenca}. The equipment available for the test was:
+
+\begin{itemize}
+	\item \textbf{EVO 4:} External USB audio interface, used as the sound card for the program.
+	\item \textbf{Audix TM1:} Measurement microphone, used as the source for the \textbf{Input from System} signal.
+	\item \textbf{Mackie SRM-750:} Loudspeaker, responsible for playing the \textbf{Output to System} signal.
+	\item \textbf{External Laptop:} Device used to generate the \textbf{External Input} signal.
+	\item \textbf{Behringer X32 Compact:} The theater's digital mixing console. It is required to route signals to the speaker. Since it is part of the system, it will also be used to compare the analysis tools of the RTA+C program with the built-in tools of the mixer.
+\end{itemize}
+
+The sound card and the measurement microphone were kindly provided by \textit{IMESDE, Integració, Distribució i Enginyeria Escènica, S.L.}, a private company located in La Garriga, Spain. All the devices used can be seen in Figure~\ref{fig:Coro_setup}.
+
+\subsection{Equipment placemant}
+
+The first step was to place the measurement microphone. It was important to choose a good position where the microphone could capture the sound from a single, representative point in the room. The first parameter to define was the microphone height. This venue is very versatile throughout the week, and the seats can be removed, which changes the acoustic environment. Additionally, the space is not properly acoustically treated, which introduces some acoustic issues. However, events held without the seats typically do not require the use of the theater's sound system. Therefore, it was more appropriate to take the measurements with the seats in place. Even though the seats had been partially removed, I positioned the microphone at the average height of a seated person, as shown in Figure~\ref{fig:Mic_pos1} and Figure~\ref{fig:Mic_pos2}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6
+	\linewidth]{Figures/Coro_micpos1.jpeg}
+	\caption{Microphone height relative to the seat}
+	\label{fig:Mic_pos1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_micpos2.jpeg}
+	\caption{Microphone height = 1.1m}
+	\label{fig:Mic_pos2}
+\end{figure}
+
+Next, the microphone had to be placed at a representative point in the room. Since only one speaker was being measured and the program operates in mono, the position had to be one where the speaker had good coverage and where the microphone was as close as possible to the center of the audience area. It was decided to place the microphone approximately halfway through the depth of the room. Starting from a position where the speaker was directly in front of the microphone, it was shifted slightly to the right to bring it closer to the actual center of the room. As shown on figure~\ref{fig:Mic_pos3} and figure~\ref{fig:Floor_section}.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_micpos3.jpeg}
+	\caption{Microphone position relative to the speaker}
+	\label{fig:Mic_pos3}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_floor_trigo.jpeg}
+	\caption{Horizontal distance between speaker and microphone}
+	\label{fig:Floor_section}
+\end{figure}
+
+Knowing that the speaker is suspended from a rigging bar at a hieght of approximately 6.5 m, and substrating the microphone height, the vertical distance between the two is around 5.4 m. Additionally, the horizontal distance—shown in Figure~\ref{fig:Floor_section}—is 7.03 m. Using basic trigonometric calculations, we can determine that the total distance between the speaker and the microphone is approximately 8.86 m, as illustrated in Figure~\ref{fig:spk-mic}.
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_section_trigo.jpeg}
+	\caption{Distance between microphone and speaker}
+	\label{fig:spk-mic}
+\end{figure}
+
+Once the microphone was positioned, next step is set up the rest of the equipment, as shown in Figure~\ref{fig:Coro_setup}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_setup.jpeg}
+	\caption{All equipment set up}
+	\label{fig:Coro_setup}
+\end{figure}
+
+In order to enable comparison between our software solution and the built-in tools of the digital mixing console (\textit{X32}), all signals must be routed through the \textit{X32}, as it offers advanced routing and distribution capabilities. Additionally, the console must be properly configured to route the signals correctly. Remember that the \textit{EVO 4} is being used as the audio interface for the RTA+C software, as shown in the following connection diagram.
+
+\begin{figure}[H]
+	\begin{center}
+		\vspace{-2mm}
+		\tikzsetnextfilename{connectio_setup}
+		\begin{tikzpicture}[node distance=30mm,on grid,auto, scale=1, bend angle=45]
+			
+			every node/.style={font=\small};
+			
+			\node (q_ext) [draw, rectangle, minimum size=1cm] {Laptop (source of sound)};
+			\node (q_X32_ext) [draw, rectangle, minimum size=1cm, right=of q_ext, xshift=2cm]{X32 - External Input};
+			\node (q_evo_ext) [draw, rectangle, minimum size=1cm, right=of q_X32_ext, xshift=2cm]{EVO 4 External Input};
+			\node (q_evo_out) [draw, rectangle, minimum size=1cm, below=of q_evo_ext]{EVO 4 Output to System};
+			\node (q_X32_out) [draw, rectangle, minimum size=1cm, below=of q_X32_ext]{X32 - Output to System};
+			\node (q_spk) [draw, rectangle, minimum size=1cm, below=of q_ext]{Speaker};
+			\node (q_mic) [draw, rectangle, minimum size=1cm, below=of q_spk]{Microphone};
+			\node (q_X32_in) [draw, rectangle, minimum size=1cm, below=of q_X32_out]{X32 - Input from System};
+			\node (q_evo_in) [draw, rectangle, minimum size=1cm, below=of q_evo_out]{EVO 4 Input from System};
+			
+			\draw[blue, very thick, ->] (q_ext) edge node {} (q_X32_ext);
+			\draw[blue, very thick, ->] (q_X32_ext) edge node {} (q_evo_ext);
+			\draw[blue, very thick, ->] (q_evo_out) edge node {} (q_X32_out);
+			\draw[blue, very thick, ->] (q_X32_out) edge node {} (q_spk);
+			\draw[red, very thick, ->] (q_spk) edge [bend left=30] node {System} (q_mic);
+			\draw[blue, very thick, ->] (q_mic) edge node {} (q_X32_in);
+			\draw[blue, very thick, ->] (q_X32_in) edge node {} (q_evo_in);
+			\draw[green, dotted, very thick, ->] (q_X32_ext) edge [bend right=30] node {Bypass or EQ using X32} (q_X32_out);
+			\draw[blue,, dotted, very thick, ->] (q_evo_ext) edge [bend right=30] node {Bypass or EQ using RTA+C} (q_evo_out);
+			%\draw[blue, very thick, ->] (q_out_bf) edge node {} (q_out_st);
+			%\draw[blue, very thick, ->] (q_out_st) edge node {} (q_out);
+			
+			
+		\end{tikzpicture}
+		\vspace{-2mm}
+	\end{center}
+	\caption{System connection overview}
+\end{figure}
+
+Also, to avoid issues related to synchronization problems that cause the glitch effect in the Bypass and EQ modules of the \textbf{RTA+C} program, it will be taking measurements using the Bypass option of the \textbf{X32} console, which works flawlessly.
+
+Once everything was connected, it was time to sit at the control desk (shown in Figure~\ref{fig:Coro_setup}), perform basic checks on the signal path and gain staging, and disable or bypass all unnecessary options and tools on the mixing console. After that, the RTA+C program was launched.
+
+\subsection{Settings page}
+
+The first step in the program is to configure the sound card and audio parameters using the \textbf{Settings} window, as shown in Figure~\ref{fig:Coro_device_settings} and Figure~\ref{fig:Coro_audio_settings}.
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_Device_settings.png}
+	\caption{Device Settings Window recognizing EVO 4 soundcard}
+	\label{fig:Coro_device_settings}
+\end{figure}
+
+As we can see in Figure~\ref{fig:Coro_device_settings}, the program automatically recognized the \textit{EVO 4} soundcard without any prior configuration—just by plugging it in and setting the Device Settings window.
+
+The next step is to configure the Audio Settings page, as shown in Figure~\ref{fig:Audio Settings}, where the sample rate is changed to 96 kHz. This confirms that the sound card and the program are compatible with this configuration.
+
+%As shown in Figure~\ref{fig:Coro_Bad_Pink}, with pink noise coming from the \textbf{External Input}, the External Input analysis shows a lack of low-frequency energy. I suspected that this might be due to the block size parameter being too small at this sample rate (which means a short analysis time window). To achieve a better representation of low frequencies, I increased the block size parameter, as shown in Figure~\ref{fig:Coro_audio_settings}, to 16,384 samples per block.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_audio_settings.png}
+	\caption{Audio Settings Window after changes}
+	\label{fig:Coro_audio_settings}
+\end{figure}
+
+Also, the block size of 16384 samples, at a 96 kHz sampling rate, represents 170.7 ms, which in the worst case corresponds to approximately 3.4 wavelengths at 20 Hz (the lowest frequency considered). Which makes this setting appropriate.
+
+
+\subsection{Delay page}
+
+To measure the delay, which should correspond to the time it takes for sound to travel from the speaker to the microphone. Considering the speed of sound as 340 m/s, this value should represent the distance between the two devices.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_delay_2.png}
+	\caption{Second Delay Measurement}
+	\label{fig:Coro_delay2}
+\end{figure}
+
+After some measurements, there was a two value that appeared repeatedly across many iterations and also made sense visually on the plot. As shown in Figure~\ref{fig:Coro_delay2}, the plot clearly highlights two peaks with significant correlation values. The lower time value among the two corresponds to 32.28 ms. This value translates to a distance of 10.98 m, which is 2.12 m more measured on Figure~\ref{fig:spk-mic} than the actual physical distance between the speaker and the microphone.
+
+In some circumstances, a proper value is not obtained, but in general, it works well.
+
+
+\subsection{RTA page and EQ module}
+
+First step: open RTA page.
+
+Referencing Figure~\ref{fig:Coro_RTA_saved}, with 10 iterations averaged, is obtained a reasonably stable plot that is easy to interpret. And the plot also accurately displays a flat response for the \textbf{External Input}, which is expected given that this signal is a clean Pink Noise.
+
+Considering these results satisfactory, is being saved the \textbf{System Gain} values using the "\textit{Save Gain}" button. Next step: open the \textbf{DSP} window. To do this effectively, it is being deactivated the \textbf{X32} Bypass to activate the EQ module from the RTA+C program with the applied values. With pink noise, the glitch effect is almost unnoticeable.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1
+	\linewidth]{Figures/Coro_EQ_from_RTA.png}
+	\caption{DSP window with EQ values applied from RTA analysis}
+	\label{fig:Coro_EQ_RTA+C}
+\end{figure}
+
+When the \textbf{DSP} window is opened, since the values from the RTA were previously saved, it automatically loads with the \textit{Analysis Values} imported with inverted sign (to apply correction, we need to compensate the analysis values, which is done by inverting their sign). If we overwrite the saved ones, or if there were no values when this page was first opened, it is possible to import the latest saved values using the \textit{Refresh} button. Then, simply press \textit{Apply Analysis values} to send them to the \textbf{EQ} modules. At this point, the page is configured as shown in Figure~\ref{fig:Coro_EQ_RTA+C}. Additionally, it is also possible to manually enter values; in that case, pressing the \textit{Apply Manual values} button will activate them.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_RTA_Saved.png}
+	\caption[Reference RTA values]{Reference RTA values using bypass, getting saved values to apply in the Correction Window}
+	\label{fig:Coro_RTA_saved}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_RTA+EQ_ON.png}
+	\caption{RTA results after activating RTA+C EQ}
+	\label{fig:Coro_RTA_RTA+C}
+\end{figure}
+
+Lastly, looking at the RTA  page from \textbf{RTA+C}, shown in Figure~\ref{fig:Coro_RTA_RTA+C}, shows a very promising results. The plot appeared much flatter compared to previous measurements, which indicates that the EQ module is functioning correctly. This also confirms that using the same filters for both analysis and processing was a good design choice.
+
+\subsection{Comparison with reference equipment}
+
+I compared my system with two basic tools available on the \textit{X32} console:
+
+\begin{itemize}
+	\item \textbf{RTA (Real-Time Analysis):} Shown in Figure~\ref{fig:Coro_X32_nontreated}, this tool provides a real-time spectrum display of the \textbf{Input from System} signal. Although the underlying algorithm is unknown, and it appears to use more than 31 bands, it is visually the most similar tool to the RTA page in my program.
+	\item \textbf{Stereo GEQ (Graphic Equalizer):} A 31-band graphic EQ. Again, the specific algorithm used is not documented, but the concept is equivalent to the DSP window of the program.
+\end{itemize}
+
+To check whether the results are reasonably close to reality, the RTA of the \textbf{Input from System} signal is compared in two scenarios: when the \textbf{Output to System} signal is bypassed (shown in Figure~\ref{fig:Coro_X32_nontreated}), and when it is equalized using the DSP window of the RTA+C program (shown in Figure~\ref{fig:Coro_X32_RTA+C}).
+
+Also, I wanted to compare the correction applied by \textbf{RTA+C} with the \textit{Stereo GEQ} tool of the \textbf{X32} console. To do so, I configured the console's EQ tool with the same parameters used in the EQ module of the software (taken directly from the RTA page of \textbf{RTA+C}). The configuration is shown in Figure~\ref{fig:Coro_X32_EQ}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_X32_EQ.jpeg}
+	\caption{Configuring the X32 EQ tool with parameters obtained from RTA+C}
+	\label{fig:Coro_X32_EQ}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_X32_nontreated.jpeg}
+	\caption[X32 RTA tool with bypass enabled]{X32 RTA tool showing Input from System with Output to System signal bypassed}
+	\label{fig:Coro_X32_nontreated}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_X32_treatedRTAc.jpeg}
+	\caption[X32 RTA tool with EQ enabled]{X32 RTA tool showing Input form System with Output to System signal equalized by RTA+C program}
+	\label{fig:Coro_X32_RTA+C}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_X32_treatedX32.jpeg}
+	\caption{Input from System with X32 EQ treatment, visualized using X32 RTA tool}
+	\label{fig:Coro_X32_treatedX32}
+\end{figure}
+
+Clearly, the graph showing the \textbf{Input from System}, as a result of equalizing the \textbf{Output to System} signal using the \textbf{RTA+C} program, appears flatter, indicating that the correction is working properly and yielding good results. For example, the dip between 1000 and 4000 Hz has improved significantly.
+
+And the Figure~\ref{fig:Coro_X32_treatedX32} shows the \textbf{Input from System} as a result of processing the \textbf{Output to System} signal using the \textit{Stereo GEQ} tool of the \textbf{X32} console. The result looks quite good, and when compared with Figure~\ref{fig:Coro_X32_RTA+C}, the response is very similar.
+
+All of this suggests that the filters currently used in the \textbf{RTA+C} program are quite effective.
+
+
+\subsection{FT page}
+
+This subsection demonstrates how averaging algorithms significantly improve the representation on the FT page.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_FT_NO_av.png}
+	\caption{FT measurement without averaging applied}
+	\label{fig:Coro_FT_no_av}
+\end{figure}
+
+Using Pink noise excitation from \textbf{External Input}. Is seen the FT page results without applying any avarage option, as shown on Figure~\ref{fig:Coro_FT_no_av}. But the plots are very anarchic, changes a lot between iterations, and is difficult to make a solid interpretaion.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_FT_time_av.png}
+	\caption{FT measurement with time averaging applied}
+	\label{fig:Coro_FT_time_av}
+\end{figure}
+
+In Figure~\ref{fig:Coro_FT_time_av}, a time average is applied, which greatly improves the consistency between iterations and makes it much easier to interpret the displayed data. However, interpreting the data in the high-frequency range is still somewhat confusing. To address this, it is being applied frequency averaging.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_FT_WITH_av.png}
+	\caption{FT measurement with time and frequency averaging applied}
+	\label{fig:Coro_FT_av}
+\end{figure}
+
+With all averaging options applied, we obtain the result shown in Figure~\ref{fig:Coro_FT_av}. While we lose considerable resolution in the low-frequency range, the high-frequency representation becomes much more visually understandable.
+
+
+\subsection{Test using music}
+
+As the software solution—intended to operate reliably in live situations—was being tested, the pink noise was replaced with music for the last test.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_Music_EQ_X32.png}
+	\caption{RTA page, using music instead of pink noise}
+	\label{fig:Coro_RTA_music}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8
+	\linewidth]{Figures/Coro_FT_music_EQX32.png}
+	\caption{FT page, using music instead of pink noise}
+	\label{fig:Coro_FT_music}
+\end{figure}
+
+Using music and ignoring the glitch issue, the results shown in Figures~\ref{fig:Coro_RTA_music} and~\ref{fig:Coro_FT_music} were obtained. It was necessary to apply some averaging to make the results more understandable. Even so, the system performed quite well: although both the \textbf{External Input} and \textbf{Input from System} signals are constantly changing, the System Gain plots show only minor variations— which makes sense, since the analyzed system remains unchanged despite the music content varying. Moreover, because these signals are synchronized using the delay adjustment, the averaged results from different signal frames consistently represent the same slice of music.
+
+This functionality is designed to be used in live situations with changing environmental conditions. It allows measurements to be taken during a show and enables real-time adjustments to be applied to the DSP module. Overall, it performs effectively in this context.
+
