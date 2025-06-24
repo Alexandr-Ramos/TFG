@@ -1,7 +1,7 @@
 # RTA+C  
 ## Real-Time Analysis plus Correction
 
-This repository contains a final degree project released under a [Creative Commons License 2025](https://bibliotecnica.upc.edu/en/propietat-intellectual/llicencies-acces-lliure-creative-commons-gnu), focused on developing a software-based solution for real-time analysis and correction of acoustic environments.
+This repository contains a final degree project, completed in 2025, and released under a [Creative Commons license](https://bibliotecnica.upc.edu/en/propietat-intellectual/llicencies-acces-lliure-creative-commons-gnu), focused on developing a software-based solution for real-time analysis and correction of acoustic environments.
 
 ### Abstract
 
@@ -30,6 +30,29 @@ constructive criticism to guide future iterations. Despite these limitations, th
 which to build. While the tool is not yet fully functional, it provides a working base from which the missing
 features can be implemented and the existing ones improved.
 
+### Screenshots
+
+Below are some screenshots of the graphical user interface and available features:
+
+#### RTA Tool
+![RTA Screenshot](report/Figures/Coro_Music_EQ_X32.png)
+
+#### Delay Measurement Tool
+![Delay Screenshot](report/Figures/Coro_delay_2.png)
+
+#### FT Analysis Tool
+![FT Screenshot](report/Figures/FT_page.png)
+
+#### DSP Module with 31-Band Equalizer
+![DSP Screenshot](report/Figures/Coro_EQ_from_RTA.png)
+
+#### Device Settings
+![Device Settings Screenshot](report/Figures/Coro_Device_settings.png)
+
+#### Audio and Device Settings
+![Audio Settings Screenshot](report/Figures/Coro_audio_settings.png)
+
+*Note: These screenshots are intended to give a quick visual overview. For detailed explanations, refer to the report.*
 
 ### Repository Structure
 
@@ -41,6 +64,8 @@ features can be implemented and the existing ones improved.
 
 ### Work in Detail
 
-For a more in-depth explanation of how the source code is structured and how it works, it is recommended to read the __Development of the chosen solutions__ chapter of the report.
+For information about how to use the software in practice, refer to the __Final Test__ section of the __Results__ chapter in the report.
 
-To better understand the current limitations and planned future improvements, refer to the first two sections of the __Results__ chapter (__Drawbacks__ and __Advantages__) in the report.
+For a more in-depth explanation of how the source code is structured and how it works, it is recommended to read the __Development of the Proposed Solution__ chapter of the report.
+
+To better understand the current limitations and planned future improvements, refer to the first two sections of the __Results__ chapter (__Drawbacks__ and __Advantages__).
