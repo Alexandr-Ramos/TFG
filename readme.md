@@ -1,7 +1,9 @@
 # RTA+C  
 ## Real-Time Analysis plus Correction
 
-This repository contains a final degree project, completed in 2025, and released under a [Creative Commons license](https://bibliotecnica.upc.edu/en/propietat-intellectual/llicencies-acces-lliure-creative-commons-gnu), focused on developing a software-based solution for real-time analysis and correction of acoustic environments.
+This repository contains a final degree project, completed in 2025, and released under a [Creative Commons Attribution-ShareAlike (CC BY-SA) license](https://bibliotecnica.upc.edu/en/propietat-intellectual/llicencies-acces-lliure-creative-commons-gnu), focused on developing a software-based solution for real-time analysis and correction of acoustic environments.
+
+The license terms are available in the `LICENSE` file.
 
 ### Abstract
 
